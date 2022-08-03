@@ -20,6 +20,7 @@ if __name__ == '__main__':
 		output_dir = sys.argv[2]
 
 		vehicle_threshold = .5
+		coco_categories_of_interest = ['car', 'bus', 'truck']
 
 		if(sys.argv[3]):
 			vehicle_threshold = float(sys.argv[3]) / 100
@@ -45,32 +46,34 @@ if __name__ == '__main__':
 
 			bname = basename(splitext(img_path)[0])
 
-			R,_ = detect(vehicle_net, vehicle_meta, img_path ,thresh=vehicle_threshold)
-
+			detection_results, image_sizes = detect(vehicle_net, vehicle_meta, img_path ,thresh=vehicle_threshold)
 			
-			C = [r for r in R if r[0] in ['car','bus']]
+			vehicles = [r for r in detection_results if r[0] in coco_categories_of_interest]
+			found_vehicles_labels = [v[0] for v in vehicles]
 
-			print('\t\t%d cars found' % len(C))
+			print('\t\t%d vehicles found: %s' % (len(vehicles), ', '.join(found_vehicles_labels)))
 
-			if len(R):
+			if len(vehicles):
 
-				Iorig = cv2.imread(img_path)
-				WH = np.array(Iorig.shape[1::-1],dtype=float)
-				Lcars = []
+				original_image = cv2.imread(img_path)
+				image_sizes = np.array(image_sizes,dtype=float)
+				
+				labels = []
 
-				for i,r in enumerate(R):
+				for i,r in enumerate(vehicles):
 
-					cx,cy,w,h = (np.array(r[2])/np.concatenate( (WH,WH) )).tolist()
-					tl = np.array([cx - w/2., cy - h/2.])
-					br = np.array([cx + w/2., cy + h/2.])
-					label = Label(0,tl,br)
-					Icar = crop_region(Iorig,label)
+					area_x, area_y, area_width, area_height = (np.array(r[2])/np.concatenate( (image_sizes, image_sizes) )).tolist()
+					top_left = np.array([area_x - area_width / 2., area_y - area_height / 2.])
+					bottom_right = np.array([area_x + area_width / 2., area_y + area_height /2.])
+					
+					textual_label = Label(0, top_left, bottom_right)
+					vehicle_label = crop_region(original_image, textual_label)
 
-					Lcars.append(label)
+					labels.append(textual_label)
 
-					cv2.imwrite('%s/%s_%dcar.png' % (output_dir,bname,i),Icar)
+					cv2.imwrite('%s/%s_%dcar.png' % (output_dir,bname,i), vehicle_label)
 
-				lwrite('%s/%s_cars.txt' % (output_dir,bname),Lcars)
+				lwrite('%s/%s_cars.txt' % (output_dir,bname),labels)
 
 	except:
 		traceback.print_exc()
