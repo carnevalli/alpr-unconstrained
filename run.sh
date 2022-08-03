@@ -38,6 +38,7 @@ keep_files=0
 car_detection_threshold=50
 lp_detection_threshold=50
 ocr_detection_threshold=40
+coco_categories="car,bus"
 
 
 # Check # of arguments
@@ -55,6 +56,7 @@ usage() {
 	echo "   --car-threshold  Car detection threshold (default: $car_detection_threshold, min: 1, max: 100)"
 	echo "   --lp-threshold  LP detection threshold (default: $lp_detection_threshold, min: 1, max: 100)"
 	echo "   --ocr-threshold  LP OCR detection threshold (default: $ocr_detection_threshold, min: 1, max: 100)"
+	echo "   --coco-categories Comma-separated set of categories for object detection from cocodataset.org. (default: $coco_categories)"
 	echo "   -h, --help   Print this help information"
 	echo ""
 	exit 1
@@ -99,6 +101,10 @@ while [[ $# -gt 0 ]]; do
 	  ocr_detection_threshold="$2"
 	  shift
 	  ;;
+	--coco-categories)
+	  coco_categories="$2"
+	  shift
+	  ;;
 	-h|--help)
       usage
       shift # past argument
@@ -140,7 +146,7 @@ fi
 set -e
 
 # Detect vehicles
-python vehicle-detection.py $input_dir $output_dir $car_detection_threshold
+python vehicle-detection.py $input_dir $output_dir $car_detection_threshold $coco_categories
 
 # Detect license plates
 python license-plate-detection.py $output_dir $lp_model $lp_detection_threshold

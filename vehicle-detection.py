@@ -20,10 +20,13 @@ if __name__ == '__main__':
 		output_dir = sys.argv[2]
 
 		vehicle_threshold = .5
-		coco_categories_of_interest = ['car', 'bus', 'truck']
+		coco_categories_of_interest = ['car', 'bus']
 
 		if len(sys.argv) >= 4:
 			vehicle_threshold = float(sys.argv[3]) / 100
+
+		if len(sys.argv) >= 5:
+			coco_categories_of_interest = sys.argv[4].split(",")
 
 		vehicle_weights = b'data/vehicle-detector/yolo-voc.weights'
 		vehicle_netcfg  = b'data/vehicle-detector/yolo-voc.cfg'
@@ -39,6 +42,7 @@ if __name__ == '__main__':
 			makedirs(output_dir)
 
 		print('Searching for vehicles using YOLO. Threshold: %.0f' % (vehicle_threshold * 100))
+		print('Categories of interest: %d [%s]' % (len(coco_categories_of_interest), ','.join(coco_categories_of_interest)))
 
 		for i,img_path in enumerate(imgs_paths):
 
