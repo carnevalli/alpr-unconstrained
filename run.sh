@@ -34,6 +34,7 @@ lp_model="data/lp-detector/wpod-net_update1.h5"
 input_dir=''
 output_dir=''
 csv_file=''
+keep_files=0
 
 
 # Check # of arguments
@@ -47,17 +48,20 @@ usage() {
 	echo "   -o   Output dir path"
 	echo "   -c   Output CSV file path"
 	echo "   -l   Path to Keras LP detector model (default = $lp_model)"
+	echo "   -k   Keep temporary files in output path"
 	echo "   -h   Print this help information"
 	echo ""
 	exit 1
 }
 
-while getopts 'i:o:c:l:h' OPTION; do
+while getopts 'i:o:c:l:h:k' OPTION; do
+	echo $OPTARG
 	case $OPTION in
 		i) input_dir=$OPTARG;;
 		o) output_dir=$OPTARG;;
 		c) csv_file=$OPTARG;;
 		l) lp_model=$OPTARG;;
+		k) keep_files=1;;
 		h) usage;;
 	esac
 done
@@ -98,9 +102,12 @@ python license-plate-ocr.py $output_dir
 # Draw output and generate list
 python gen-outputs.py $input_dir $output_dir > $csv_file
 
-# Clean files and draw output
-rm $output_dir/*_lp.png
-rm $output_dir/*car.png
-rm $output_dir/*_cars.txt
-rm $output_dir/*_lp.txt
-rm $output_dir/*_str.txt
+# Clean files temporary files
+if [ $keep_files -eq 0 ]
+then 
+	rm $output_dir/*_lp.png
+	rm $output_dir/*car.png
+	rm $output_dir/*_cars.txt
+	rm $output_dir/*_lp.txt
+	rm $output_dir/*_str.txt
+fi
