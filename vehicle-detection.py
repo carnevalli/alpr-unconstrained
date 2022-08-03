@@ -22,7 +22,7 @@ if __name__ == '__main__':
 		vehicle_threshold = .5
 		coco_categories_of_interest = ['car', 'bus', 'truck']
 
-		if(sys.argv[3]):
+		if len(sys.argv) >= 4:
 			vehicle_threshold = float(sys.argv[3]) / 100
 
 		vehicle_weights = b'data/vehicle-detector/yolo-voc.weights'
