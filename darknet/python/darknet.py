@@ -123,7 +123,7 @@ def classify(net, meta, im):
     return res
 
 def detect(net, meta, image, thresh=.5, hier_thresh=.5, nms=.45):
-    im = load_image(image, 0, 0)
+    im = load_image(bytes(image, encoding="utf-8"), 0, 0)
     num = c_int(0)
     pnum = pointer(num)
     predict_image(net, im)
@@ -136,7 +136,7 @@ def detect(net, meta, image, thresh=.5, hier_thresh=.5, nms=.45):
         for i in range(meta.classes):
             if dets[j].prob[i] > 0:
                 b = dets[j].bbox
-                res.append((meta.names[i], dets[j].prob[i], (b.x, b.y, b.w, b.h)))
+                res.append((bytes.decode(meta.names[i], encoding="utf-8"), dets[j].prob[i], (b.x, b.y, b.w, b.h)))
     res = sorted(res, key=lambda x: -x[1])
     wh = (im.w,im.h)
     free_image(im)
