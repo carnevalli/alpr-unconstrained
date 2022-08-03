@@ -21,6 +21,9 @@ if __name__ == '__main__':
 
 		vehicle_threshold = .5
 
+		if(sys.argv[3]):
+			vehicle_threshold = float(sys.argv[3]) / 100
+
 		vehicle_weights = b'data/vehicle-detector/yolo-voc.weights'
 		vehicle_netcfg  = b'data/vehicle-detector/yolo-voc.cfg'
 		vehicle_dataset = b'data/vehicle-detector/voc.data'
@@ -34,7 +37,7 @@ if __name__ == '__main__':
 		if not isdir(output_dir):
 			makedirs(output_dir)
 
-		print('Searching for vehicles using YOLO...')
+		print('Searching for vehicles using YOLO. Threshold: %.0f' % (vehicle_threshold * 100))
 
 		for i,img_path in enumerate(imgs_paths):
 

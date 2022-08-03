@@ -22,14 +22,17 @@ if __name__ == '__main__':
 		input_dir  = sys.argv[1]
 		output_dir = input_dir
 
-		lp_threshold = .5
-
 		wpod_net_path = sys.argv[2]
 		wpod_net = load_model(wpod_net_path)
 
+		lp_threshold = .5
+
+		if len(sys.argv) >= 4:
+			lp_threshold = float(sys.argv[3]) / 100
+
 		imgs_paths = glob('%s/*car.png' % input_dir)
 
-		print('Searching for license plates using WPOD-NET')
+		print('Searching for license plates using WPOD-NET. Threshold: %.0f' % (lp_threshold * 100))
 
 		for i,img_path in enumerate(imgs_paths):
 

@@ -21,6 +21,9 @@ if __name__ == '__main__':
 
 		ocr_threshold = .4
 
+		if len(sys.argv) >= 3:
+			ocr_threshold = float(sys.argv[2]) / 100
+
 		ocr_weights = b'data/ocr/ocr-net.weights'
 		ocr_netcfg  = b'data/ocr/ocr-net.cfg'
 		ocr_dataset = b'data/ocr/ocr-net.data'
@@ -30,7 +33,7 @@ if __name__ == '__main__':
 
 		imgs_paths = sorted(glob('%s/*lp.png' % output_dir))
 
-		print('Performing OCR...')
+		print('Performing OCR. Threshold: %.0f' % ( ocr_threshold * 100))
 
 		for i,img_path in enumerate(imgs_paths):
 
