@@ -39,6 +39,10 @@ car_detection_threshold=50
 lp_detection_threshold=50
 ocr_detection_threshold=40
 coco_categories="car,bus"
+yolo_version=5
+vehicle_only=0
+lp_only=0
+ocr_only=0
 
 
 # Check # of arguments
@@ -57,6 +61,10 @@ usage() {
 	echo "   --lp-threshold  LP detection threshold (default: $lp_detection_threshold, min: 1, max: 100)"
 	echo "   --ocr-threshold  LP OCR detection threshold (default: $ocr_detection_threshold, min: 1, max: 100)"
 	echo "   --coco-categories Comma-separated set of categories for object detection from cocodataset.org. (default: $coco_categories)"
+	echo "   --yolo-voc Use YOLOv2-voc vehicle detection model instead of YOLOv5s-coco"
+	echo "   --vehicle-only Stops image processing after vehicle detection stage"
+	echo "   --lp-only Stops the image processing after license plate detection stage."
+	echo "   --ocr-only Stops the image processing after OCR stage."
 	echo "   -h, --help   Print this help information"
 	echo ""
 	exit 1
@@ -105,6 +113,22 @@ while [[ $# -gt 0 ]]; do
 	  coco_categories="$2"
 	  shift
 	  ;;
+	--yolo-voc)
+	  yolo_version=2
+	  shift
+	  ;;
+	--vehicle-only)
+	  vehicle_only=1
+	  shift
+	  ;;
+	--lp-only)
+	  lp_only=1
+	  shift
+	  ;;
+	--ocr-only)
+	  ocr_only=1
+	  shift
+	  ;;
 	-h|--help)
       usage
       shift # past argument
@@ -124,6 +148,7 @@ if [ -z "$input_dir"  ]; then echo "Input dir not set."; usage; exit 1; fi
 if [ -z "$output_dir" ]; then echo "Ouput dir not set."; usage; exit 1; fi
 if [ -z "$csv_file"   ]; then echo "CSV file not set." ; usage; exit 1; fi
 if [ $car_detection_threshold -lt 1 ] || [ $car_detection_threshold -gt 100 ]; then echo "Car detection threshold must be between 1 and 100" ; usage; exit 1; fi
+if [ $yolo_version -ne 2 ] && [ $yolo_version -ne 5 ]; then echo "Invalid YOLO version. Please provide some of these available version numbers: [3,5]"; usage; exit 1; fi
 
 # Check if input dir exists
 check_dir $input_dir
@@ -146,23 +171,39 @@ fi
 set -e
 
 # Detect vehicles
-python vehicle-detection.py $input_dir $output_dir $car_detection_threshold $coco_categories
+python vehicle-detection-v$yolo_version.py $input_dir $output_dir $car_detection_threshold $coco_categories
 
-# Detect license plates
-python license-plate-detection.py $output_dir $lp_model $lp_detection_threshold
+if [ $vehicle_only -eq 0 ]
+then
+	# Detect license plates
+	python license-plate-detection.py $output_dir $lp_model $lp_detection_threshold
+
+	if [ $lp_only -eq 0 ]
+	then
+		# OCR
+		python license-plate-ocr.py $output_dir $ocr_detection_threshold
+
+		if [ $ocr_only -eq 0 ]
+		then
+			# Draw output and generate list
+			python gen-outputs.py $input_dir $output_dir > $csv_file
+		fi
+	fi
+fi
+
 
 # OCR
-python license-plate-ocr.py $output_dir $ocr_detection_threshold
+# python license-plate-ocr.py $output_dir $ocr_detection_threshold
 
 # Draw output and generate list
-python gen-outputs.py $input_dir $output_dir > $csv_file
+# python gen-outputs.py $input_dir $output_dir > $csv_file
 
 # Clean files temporary files
 if [ $keep_files -eq 0 ]
 then 
-	rm $output_dir/*_lp.png
-	rm $output_dir/*car.png
-	rm $output_dir/*_cars.txt
-	rm $output_dir/*_lp.txt
-	rm $output_dir/*_str.txt
+	rm $output_dir/*_lp.png 2> /dev/null
+	rm $output_dir/*car.png 2> /dev/null
+	rm $output_dir/*_cars.txt 2> /dev/null
+	rm $output_dir/*_lp.txt 2> /dev/null
+	rm $output_dir/*_str.txt 2> /dev/null
 fi
