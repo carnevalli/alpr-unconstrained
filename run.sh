@@ -34,8 +34,8 @@ lp_model="data/lp-detector/wpod-net_update1.h5"
 input_dir=''
 output_dir=''
 csv_file=''
-keep_files=0
-car_detection_threshold=50
+vehiclep_files=0
+vehicle_detection_threshold=50
 lp_detection_threshold=50
 ocr_detection_threshold=40
 coco_categories="car,bus"
@@ -56,8 +56,8 @@ usage() {
 	echo "   -o, --output-dir   Output dir path"
 	echo "   -c, --csv-file   Output CSV file path"
 	echo "   -l, --lp-model   Path to Keras LP detector model (default = $lp_model)"
-	echo "   -k, --keep-files   Keep temporary files in output path"
-	echo "   --car-threshold  Car detection threshold (default: $car_detection_threshold, min: 1, max: 100)"
+	echo "   -k, --keep-files   Keep temporary files in outpuvehicleath"
+	echo "   --vehicle-threshold  Vehicle detection threshold (default: $vehicle_detection_threshold, min: 1, max: 100)"
 	echo "   --lp-threshold  LP detection threshold (default: $lp_detection_threshold, min: 1, max: 100)"
 	echo "   --ocr-threshold  LP OCR detection threshold (default: $ocr_detection_threshold, min: 1, max: 100)"
 	echo "   --coco-categories Comma-separated set of categories for object detection from cocodataset.org. (default: $coco_categories)"
@@ -97,8 +97,8 @@ while [[ $# -gt 0 ]]; do
       keep_files=1
       shift # past argument
       ;;
-	--car-threshold)
-	  car_detection_threshold="$2"
+	--vehicle-threshold)
+	  vehicle_detection_threshold="$2"
 	  shift
 	  ;;
 	--lp-threshold)
@@ -147,7 +147,9 @@ done
 if [ -z "$input_dir"  ]; then echo "Input dir not set."; usage; exit 1; fi
 if [ -z "$output_dir" ]; then echo "Ouput dir not set."; usage; exit 1; fi
 if [ -z "$csv_file"   ]; then echo "CSV file not set." ; usage; exit 1; fi
-if [ $car_detection_threshold -lt 1 ] || [ $car_detection_threshold -gt 100 ]; then echo "Car detection threshold must be between 1 and 100" ; usage; exit 1; fi
+if [ $vehicle_detection_threshold -lt 1 ] || [ $vehicle_detection_threshold -gt 100 ]; then echo "Vehicle detection threshold must be between 1 and 100" ; usage; exit 1; fi
+if [ $lp_detection_threshold -lt 1 ] || [ $lp_detection_threshold -gt 100 ]; then echo "LP detection threshold must be between 1 and 100" ; usage; exit 1; fi
+if [ $ocr_detection_threshold -lt 1 ] || [ $ocr_detection_threshold -gt 100 ]; then echo "OCR detection threshold must be between 1 and 100" ; usage; exit 1; fi
 if [ $yolo_version -ne 2 ] && [ $yolo_version -ne 5 ]; then echo "Invalid YOLO version. Please provide some of these available version numbers: [3,5]"; usage; exit 1; fi
 
 # Check if input dir exists
@@ -171,7 +173,7 @@ fi
 set -e
 
 # Detect vehicles
-python vehicle-detection-v$yolo_version.py $input_dir $output_dir $car_detection_threshold $coco_categories
+python vehicle-detection-v$yolo_version.py $input_dir $output_dir $vehicle_detection_threshold $coco_categories
 
 if [ $vehicle_only -eq 0 ]
 then
@@ -190,13 +192,6 @@ then
 		fi
 	fi
 fi
-
-
-# OCR
-# python license-plate-ocr.py $output_dir $ocr_detection_threshold
-
-# Draw output and generate list
-# python gen-outputs.py $input_dir $output_dir > $csv_file
 
 # Clean files temporary files
 if [ $keep_files -eq 0 ]
