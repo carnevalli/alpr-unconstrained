@@ -38,24 +38,27 @@ if __name__ == '__main__':
 			print('\t Processing %s' % img_path)
 
 			bname = splitext(basename(img_path))[0]
-			Ivehicle = cv2.imread(img_path)
+			vehicle_image = cv2.imread(img_path)
 
-			ratio = float(max(Ivehicle.shape[:2]))/min(Ivehicle.shape[:2])
+			ratio = float(max(vehicle_image.shape[:2]))/min(vehicle_image.shape[:2])
 			side  = int(ratio*288.)
 			bound_dim = min(side + (side%(2**4)),608)
 			print("\t\tBound dim: %d, ratio: %f" % (bound_dim,ratio))
 
-			Llp,LlpImgs,_ = detect_lp(wpod_net,im2single(Ivehicle),bound_dim,2**4,(240,80),lp_threshold)
+			lp_labels, lp_images, _ = detect_lp(wpod_net,im2single(vehicle_image),bound_dim,2**4,(240,80),lp_threshold)
 
-			if len(LlpImgs):
-				Ilp = LlpImgs[0]
-				Ilp = cv2.cvtColor(Ilp, cv2.COLOR_BGR2GRAY)
-				Ilp = cv2.cvtColor(Ilp, cv2.COLOR_GRAY2BGR)
+			print('\t\tPossible LP found: %d' % len(lp_images))
 
-				s = Shape(Llp[0].pts)
+			if len(lp_images):
+				for j in range(len(lp_images)):
+					lp_image = lp_images[j]
+					lp_image = cv2.cvtColor(lp_image, cv2.COLOR_BGR2GRAY)
+					lp_image = cv2.cvtColor(lp_image, cv2.COLOR_GRAY2BGR)
 
-				cv2.imwrite('%s/%s_lp.png' % (output_dir,bname),Ilp*255.)
-				writeShapes('%s/%s_lp.txt' % (output_dir,bname),[s])
+					s = Shape(lp_labels[j].pts)
+
+					cv2.imwrite('%s/%s_%d_lp.png' % (output_dir,bname,j),lp_image*255.)
+					writeShapes('%s/%s_%d_lp.txt' % (output_dir,bname,j),[s])
 
 	except:
 		traceback.print_exc()
