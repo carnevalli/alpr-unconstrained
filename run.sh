@@ -43,7 +43,7 @@ yolo_version=5
 vehicle_only=0
 lp_only=0
 ocr_only=0
-
+max_vehicles=0
 
 # Check # of arguments
 usage() {
@@ -60,6 +60,7 @@ usage() {
 	echo "   --vehicle-threshold  Vehicle detection threshold (default: $vehicle_detection_threshold, min: 1, max: 100)"
 	echo "   --lp-threshold  LP detection threshold (default: $lp_detection_threshold, min: 1, max: 100)"
 	echo "   --ocr-threshold  LP OCR detection threshold (default: $ocr_detection_threshold, min: 1, max: 100)"
+	echo "   --max-vehicles Limits the number of detected vehicles ordering by descending image area occupied by each vehicle. (default: no limit)"
 	echo "   --coco-categories Comma-separated set of categories for object detection from cocodataset.org. (default: $coco_categories)"
 	echo "   --yolo-voc Use YOLOv2-voc vehicle detection model instead of YOLOv5s-coco"
 	echo "   --vehicle-only Stops image processing after vehicle detection stage"
@@ -107,6 +108,10 @@ while [[ $# -gt 0 ]]; do
 	  ;;
 	--ocr-threshold)
 	  ocr_detection_threshold="$2"
+	  shift
+	  ;;
+	--max-vehicles)
+	  max_vehicles="$2"
 	  shift
 	  ;;
 	--coco-categories)
@@ -173,7 +178,7 @@ fi
 set -e
 
 # Detect vehicles
-python vehicle-detection-v$yolo_version.py $input_dir $output_dir $vehicle_detection_threshold $coco_categories
+python vehicle-detection-v$yolo_version.py $input_dir $output_dir $vehicle_detection_threshold $coco_categories $max_vehicles
 
 if [ $vehicle_only -eq 0 ]
 then

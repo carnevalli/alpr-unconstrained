@@ -18,6 +18,7 @@ if __name__ == '__main__':
 		output_dir = sys.argv[2]
 
 		vehicle_threshold = .5
+		max_vehicles = 0
 		coco_categories_of_interest = ['car', 'bus']
 
 		if len(sys.argv) >= 4:
@@ -25,6 +26,9 @@ if __name__ == '__main__':
 
 		if len(sys.argv) >= 5:
 			coco_categories_of_interest = sys.argv[4].split(",")
+
+		if len(sys.argv) >= 6:
+			max_vehicles = int(sys.argv[5])
 
 		model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
 
@@ -45,6 +49,12 @@ if __name__ == '__main__':
 
 			detection_results = model(img_path, size=640).pandas().xyxy[0]
 			vehicles = detection_results.loc[detection_results['name'].isin(coco_categories_of_interest) & detection_results['confidence'] > 0].copy()
+
+			vehicles['area'] =  (vehicles['xmax'] - vehicles['xmin']) * (vehicles['ymax'] - vehicles['ymin'])
+			vehicles.sort_values('area', ascending=False, inplace=True)
+
+			if max_vehicles > 0:
+				vehicles = vehicles[:max_vehicles]
 
 			found_vehicles_labels = vehicles['name'].values
 			print('\t\t%d vehicles found: %s' % (len(vehicles), ', '.join(found_vehicles_labels)))
