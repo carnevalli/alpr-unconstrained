@@ -19,6 +19,7 @@ if __name__ == '__main__':
 
 		vehicle_threshold = .5
 		max_vehicles = 0
+		max_vehicles_order_by = 'area'
 		coco_categories_of_interest = ['car', 'bus']
 
 		if len(sys.argv) >= 4:
@@ -29,6 +30,9 @@ if __name__ == '__main__':
 
 		if len(sys.argv) >= 6:
 			max_vehicles = int(sys.argv[5])
+
+		if len(sys.argv) >= 7:
+			max_vehicles_order_by = sys.argv[6]
 
 		model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
 
@@ -51,7 +55,7 @@ if __name__ == '__main__':
 			vehicles = detection_results.loc[detection_results['name'].isin(coco_categories_of_interest) & detection_results['confidence'] > 0].copy()
 
 			vehicles['area'] =  (vehicles['xmax'] - vehicles['xmin']) * (vehicles['ymax'] - vehicles['ymin'])
-			vehicles.sort_values('area', ascending=False, inplace=True)
+			vehicles.sort_values('confidence' if max_vehicles_order_by == 'confidence' else 'area' , ascending=False, inplace=True)
 
 			if max_vehicles > 0:
 				vehicles = vehicles[:max_vehicles]
