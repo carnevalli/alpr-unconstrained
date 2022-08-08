@@ -20,6 +20,8 @@ if __name__ == '__main__':
 		output_dir = sys.argv[2]
 
 		vehicle_threshold = .5
+		max_vehicles = 0
+		max_vehicles_order_by = 'area'
 		coco_categories_of_interest = ['car', 'bus']
 
 		if len(sys.argv) >= 4:
@@ -27,6 +29,12 @@ if __name__ == '__main__':
 
 		if len(sys.argv) >= 5:
 			coco_categories_of_interest = sys.argv[4].split(",")
+
+		if len(sys.argv) >= 6:
+			max_vehicles = int(sys.argv[5])
+
+		if len(sys.argv) >= 7:
+			max_vehicles_order_by = sys.argv[6]
 
 		vehicle_weights = b'data/vehicle-detector/yolo-voc.weights'
 		vehicle_netcfg  = b'data/vehicle-detector/yolo-voc.cfg'
@@ -61,12 +69,27 @@ if __name__ == '__main__':
 
 				original_image = cv2.imread(img_path)
 				image_sizes = np.array(image_sizes,dtype=float)
-				
-				labels = []
+
+				crops = []
 
 				for i,r in enumerate(vehicles):
 
-					area_x, area_y, area_width, area_height = (np.array(r[2])/np.concatenate( (image_sizes, image_sizes) )).tolist()
+					label, confidence, coords = r
+					crops.append(
+						{
+							"label": label,
+							"coords": coords,
+							"confidence" : confidence
+						}
+					)
+
+				crops.sort(key=lambda c : c['coords'][2] * c['coords'][3] if max_vehicles_order_by == 'area' else c['confidence'], reverse=True)
+				crops = crops[: len(crops) if max_vehicles == 0 or max_vehicles >= len(crops) else max_vehicles]
+				
+				labels = []
+
+				for i,r in enumerate(crops):
+					area_x, area_y, area_width, area_height = (np.array(r['coords'])/np.concatenate( (image_sizes, image_sizes) )).tolist()
 					top_left = np.array([area_x - area_width / 2., area_y - area_height / 2.])
 					bottom_right = np.array([area_x + area_width / 2., area_y + area_height /2.])
 					
