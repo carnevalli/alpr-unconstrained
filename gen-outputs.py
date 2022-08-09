@@ -1,10 +1,11 @@
 import sys
 import cv2
 import numpy as np
+import re
 
 from glob						import glob
 from os.path 					import splitext, basename, isfile
-from src.utils 					import crop_region, image_files_from_folder
+from src.utils 					import crop_region, image_files_from_folder, loadRegexPatterns
 from src.drawing_utils			import draw_label, draw_losangle, write2img
 from src.label 					import lread, Label, readShapes
 
@@ -17,7 +18,14 @@ RED    = (  0,  0,255)
 input_dir = sys.argv[1]
 output_dir = sys.argv[2]
 
+validation_regex_path = ''
+
+if len(sys.argv) >= 4:
+	validation_regex_path = sys.argv[3]
+
 img_files = image_files_from_folder(input_dir)
+
+regex_patterns = loadRegexPatterns(validation_regex_path)
 
 for img_file in img_files:
 
@@ -42,14 +50,31 @@ for img_file in img_files:
 
 			for i in range(len(lp_labels)):
 				if isfile(lp_labels[i]):
-					lp_shapes = readShapes(lp_labels[i])
-					pts = lp_shapes[0].pts * car_label.wh().reshape(2,1) + car_label.tl().reshape(2,1)
-					ptspx = pts * np.array(I.shape[1::-1], dtype=float).reshape(2,1)
-					draw_losangle(I,ptspx,RED,3)
 
 					if isfile(lp_labels_str[i]):
+
+						lp_str = ''
+
 						with open(lp_labels_str[i],'r') as f:
 							lp_str = f.read().strip()
+
+						if regex_patterns:
+							matches = []
+							for pattern_id, pattern in regex_patterns:
+								m = re.findall('^%s$' % pattern, lp_str, flags=re.IGNORECASE)
+
+								if len(m) > 0:
+									matches.append((pattern_id, lp_str))
+							
+							if len(matches) == 0:
+								continue
+
+						lp_shapes = readShapes(lp_labels[i])
+						pts = lp_shapes[0].pts * car_label.wh().reshape(2,1) + car_label.tl().reshape(2,1)
+						ptspx = pts * np.array(I.shape[1::-1], dtype=float).reshape(2,1)
+						draw_losangle(I,ptspx,RED,3)
+						
+						
 						lp_label = Label(0,tl=pts.min(1),br=pts.max(1))
 						write2img(I, lp_label, lp_str)
 

@@ -45,6 +45,7 @@ lp_only=0
 ocr_only=0
 max_vehicles=0
 vehicles_order="area"
+validation_regex="regex.tsv"
 
 # Check # of arguments
 usage() {
@@ -64,6 +65,7 @@ usage() {
 	echo "   --max-vehicles Limits the number of detected vehicles ordering by descending image area occupied by each vehicle. (default: no limit)"
 	echo "   --vehicles-order Defines sort criteria for vehicle processing queue, also impacting on max-vehicles setting. Options: area (biggest area first), confidence (greater confidence first)"
 	echo "   --coco-categories Comma-separated set of categories for object detection from cocodataset.org. (default: $coco_categories)"
+	echo "   --validation Path to regex validation file. (default: $validation_regex)"
 	echo "   --yolo-voc Use YOLOv2-voc vehicle detection model instead of YOLOv5s-coco"
 	echo "   --vehicle-only Stops image processing after vehicle detection stage"
 	echo "   --lp-only Stops the image processing after license plate detection stage."
@@ -130,6 +132,10 @@ while [[ $# -gt 0 ]]; do
 	  ;;
 	--vehicle-only)
 	  vehicle_only=1
+	  shift
+	  ;;
+	--validation)
+	  validation_regex="$2"
 	  shift
 	  ;;
 	--lp-only)
@@ -200,7 +206,7 @@ then
 		if [ $ocr_only -eq 0 ]
 		then
 			# Draw output and generate list
-			python gen-outputs.py $input_dir $output_dir > $csv_file
+			python gen-outputs.py $input_dir $output_dir $validation_regex > $csv_file
 		fi
 	fi
 fi

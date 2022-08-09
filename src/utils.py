@@ -2,6 +2,7 @@
 import numpy as np
 import cv2
 import sys
+import re
 
 from glob import glob
 
@@ -121,3 +122,23 @@ def show(I,wname='Display'):
 		sys.exit()
 	else:
 		return key
+
+
+def loadRegexPatterns(path):
+	content = []
+	output = []
+
+	with open(path) as f:
+		content = f.readlines()
+		
+	for line in content:
+		if line.startswith('#'):
+			continue
+
+		label, regex = re.split(r'\t+', line)
+		output.append((label, regex.rstrip('\n')))
+	
+	return output
+
+
+

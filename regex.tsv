@@ -1,0 +1,7 @@
+# Define in the lines of this file all regex patterns that filter final LP recognition results
+# Lines starting with # are not considered
+# Usage:
+# Label[TAB]Regex Pattern
+#0	[A-Z]{3}[0-9]{4}
+#1	[A-Z]{3}[0-9][A-J][0-9]{2}
+#2	[A-Z]{3}[0-9]{3}
