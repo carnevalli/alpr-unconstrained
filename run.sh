@@ -44,7 +44,7 @@ vehicle_only=0
 lp_only=0
 ocr_only=0
 max_vehicles=0
-max_vehicles_order_by="area"
+vehicles-order="area"
 
 # Check # of arguments
 usage() {
@@ -62,7 +62,7 @@ usage() {
 	echo "   --lp-threshold  LP detection threshold (default: $lp_detection_threshold, min: 1, max: 100)"
 	echo "   --ocr-threshold  LP OCR detection threshold (default: $ocr_detection_threshold, min: 1, max: 100)"
 	echo "   --max-vehicles Limits the number of detected vehicles ordering by descending image area occupied by each vehicle. (default: no limit)"
-	echo "   --max-vehicles-order-by Defines the criteria used to filter max_vehicles option. Options: area, confidence"
+	echo "   --vehicles-order Defines sort criteria for vehicle processing queue, also impacting on max-vehicles setting. Options: area (biggest area first), confidence (greater confidence first)"
 	echo "   --coco-categories Comma-separated set of categories for object detection from cocodataset.org. (default: $coco_categories)"
 	echo "   --yolo-voc Use YOLOv2-voc vehicle detection model instead of YOLOv5s-coco"
 	echo "   --vehicle-only Stops image processing after vehicle detection stage"
@@ -116,8 +116,8 @@ while [[ $# -gt 0 ]]; do
 	  max_vehicles="$2"
 	  shift
 	  ;;
-	--max-vehicles-order-by)
-	  max_vehicles_order_by="$2"
+	--vehicles-order)
+	  vehicles-order="$2"
 	  shift
 	  ;;
 	--coco-categories)
@@ -162,7 +162,7 @@ if [ $vehicle_detection_threshold -lt 1 ] || [ $vehicle_detection_threshold -gt 
 if [ $lp_detection_threshold -lt 1 ] || [ $lp_detection_threshold -gt 100 ]; then echo "LP detection threshold must be between 1 and 100" ; usage; exit 1; fi
 if [ $ocr_detection_threshold -lt 1 ] || [ $ocr_detection_threshold -gt 100 ]; then echo "OCR detection threshold must be between 1 and 100" ; usage; exit 1; fi
 if [ $yolo_version -ne 2 ] && [ $yolo_version -ne 5 ]; then echo "Invalid YOLO version. Please provide some of these available version numbers: [3,5]"; usage; exit 1; fi
-if [ $max_vehicles_order_by != "area" ] && [ $max_vehicles_order_by != "confidence" ]; then echo "Invalid max_vehicles_order_by option. Valid options: area, confidence"; usage; exit 1; fi
+if [ $vehicles-order != "area" ] && [ $vehicles-order != "confidence" ]; then echo "Invalid vehicles-order option. Valid options: area, confidence"; usage; exit 1; fi
 
 # Check if input dir exists
 check_dir $input_dir
@@ -185,7 +185,7 @@ fi
 set -e
 
 # Detect vehicles
-python vehicle-detection-v$yolo_version.py $input_dir $output_dir $vehicle_detection_threshold $coco_categories $max_vehicles $max_vehicles_order_by
+python vehicle-detection-v$yolo_version.py $input_dir $output_dir $vehicle_detection_threshold $coco_categories $max_vehicles $vehicles-order
 
 if [ $vehicle_only -eq 0 ]
 then
