@@ -27,31 +27,31 @@ for img_file in img_files:
 
 	detected_cars_labels = '%s/%s_cars.txt' % (output_dir,bname)
 
-	Lcar = lread(detected_cars_labels)
+	car_labels = lread(detected_cars_labels)
 
 	sys.stdout.write('%s' % bname)
 
-	if Lcar:
+	if car_labels:
 
-		for i,lcar in enumerate(Lcar):
+		for i,car_label in enumerate(car_labels):
 
-			draw_label(I,lcar,color=YELLOW,thickness=3)
+			draw_label(I,car_label,color=YELLOW,thickness=3)
 
 			lp_labels = glob('%s/%s_%d_car_*_lp.txt' % (output_dir,bname,i))
 			lp_labels_str = glob('%s/%s_%d_car_*_lp_str.txt' % (output_dir,bname,i))
 
 			for i in range(len(lp_labels)):
 				if isfile(lp_labels[i]):
-					Llp_shapes = readShapes(lp_labels[i])
-					pts = Llp_shapes[0].pts*lcar.wh().reshape(2,1) + lcar.tl().reshape(2,1)
-					ptspx = pts*np.array(I.shape[1::-1],dtype=float).reshape(2,1)
+					lp_shapes = readShapes(lp_labels[i])
+					pts = lp_shapes[0].pts * car_label.wh().reshape(2,1) + car_label.tl().reshape(2,1)
+					ptspx = pts * np.array(I.shape[1::-1], dtype=float).reshape(2,1)
 					draw_losangle(I,ptspx,RED,3)
 
 					if isfile(lp_labels_str[i]):
 						with open(lp_labels_str[i],'r') as f:
 							lp_str = f.read().strip()
-						llp = Label(0,tl=pts.min(1),br=pts.max(1))
-						write2img(I,llp,lp_str)
+						lp_label = Label(0,tl=pts.min(1),br=pts.max(1))
+						write2img(I, lp_label, lp_str)
 
 						sys.stdout.write(',%s' % lp_str)
 
