@@ -8,6 +8,7 @@ from os.path 					import splitext, basename, isfile
 from src.utils 					import crop_region, image_files_from_folder, loadRegexPatterns
 from src.drawing_utils			import draw_label, draw_losangle, write2img
 from src.label 					import lread, Label, readShapes
+from transform					import findsimilar
 
 from pdb import set_trace as pause
 
@@ -19,9 +20,13 @@ input_dir = sys.argv[1]
 output_dir = sys.argv[2]
 
 validation_regex_path = ''
+suppress_transformations = False
 
 if len(sys.argv) >= 4:
 	validation_regex_path = sys.argv[3]
+
+if len(sys.argv) >= 5:
+	suppress_transformations = sys.argv[4] == '1'
 
 img_files = image_files_from_folder(input_dir)
 
@@ -50,18 +55,23 @@ for img_file in img_files:
 
 			for i in range(len(lp_labels)):
 				if isfile(lp_labels[i]):
-
 					if isfile(lp_labels_str[i]):
-
+						
 						lp_str = ''
 
+						# LP from OCR
 						with open(lp_labels_str[i],'r') as f:
 							lp_str = f.read().strip()
+
+						# transformation to find valid similar LP strings
+						lp_similar = []
+						if not suppress_transformations:
+							lp_similar = findsimilar(lp_str, regex_patterns)
 
 						if regex_patterns:
 							matches = []
 							for pattern_id, pattern in regex_patterns:
-								m = re.findall('^%s$' % pattern, lp_str, flags=re.IGNORECASE)
+								m = re.findall(pattern, lp_str, flags=re.IGNORECASE)
 
 								if len(m) > 0:
 									matches.append((pattern_id, lp_str))

@@ -46,6 +46,7 @@ ocr_only=0
 max_vehicles=0
 vehicles_order="area"
 validation_regex="regex.tsv"
+suppress_transformations=0
 
 # Check # of arguments
 usage() {
@@ -70,6 +71,7 @@ usage() {
 	echo "   --vehicle-only Stops image processing after vehicle detection stage"
 	echo "   --lp-only Stops the image processing after license plate detection stage."
 	echo "   --ocr-only Stops the image processing after OCR stage."
+	echo "   --suppress-transformations Prevents the usage of transformations to find similar strings based on the OCR inferred string."
 	echo "   -h, --help   Print this help information"
 	echo ""
 	exit 1
@@ -146,6 +148,10 @@ while [[ $# -gt 0 ]]; do
 	  ocr_only=1
 	  shift
 	  ;;
+	--suppress-transformations)
+	  suppress_transformations=1
+	  shift
+	  ;;
 	-h|--help)
       usage
       shift # past argument
@@ -191,22 +197,22 @@ fi
 set -e
 
 # Detect vehicles
-python vehicle-detection-v$yolo_version.py $input_dir $output_dir $vehicle_detection_threshold $coco_categories $max_vehicles $vehicles-order
+# python vehicle-detection-v$yolo_version.py $input_dir $output_dir $vehicle_detection_threshold $coco_categories $max_vehicles $vehicles-order
 
 if [ $vehicle_only -eq 0 ]
 then
 	# Detect license plates
-	python license-plate-detection.py $output_dir $lp_model $lp_detection_threshold
+	# python license-plate-detection.py $output_dir $lp_model $lp_detection_threshold
 
 	if [ $lp_only -eq 0 ]
 	then
 		# OCR
-		python license-plate-ocr.py $output_dir $ocr_detection_threshold
+		# python license-plate-ocr.py $output_dir $ocr_detection_threshold
 
 		if [ $ocr_only -eq 0 ]
 		then
 			# Draw output and generate list
-			python gen-outputs.py $input_dir $output_dir $validation_regex > $csv_file
+			python gen-outputs.py $input_dir $output_dir $validation_regex $suppress_transformations
 		fi
 	fi
 fi
