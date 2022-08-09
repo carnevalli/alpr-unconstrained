@@ -37,23 +37,23 @@ for img_file in img_files:
 
 			draw_label(I,lcar,color=YELLOW,thickness=3)
 
-			lp_label 		= '%s/%s_%dcar_lp.txt'		% (output_dir,bname,i)
-			lp_label_str 	= '%s/%s_%dcar_lp_str.txt'	% (output_dir,bname,i)
+			lp_labels = glob('%s/%s_%d_car_*_lp.txt' % (output_dir,bname,i))
+			lp_labels_str = glob('%s/%s_%d_car_*_lp_str.txt' % (output_dir,bname,i))
 
-			if isfile(lp_label):
+			for i in range(len(lp_labels)):
+				if isfile(lp_labels[i]):
+					Llp_shapes = readShapes(lp_labels[i])
+					pts = Llp_shapes[0].pts*lcar.wh().reshape(2,1) + lcar.tl().reshape(2,1)
+					ptspx = pts*np.array(I.shape[1::-1],dtype=float).reshape(2,1)
+					draw_losangle(I,ptspx,RED,3)
 
-				Llp_shapes = readShapes(lp_label)
-				pts = Llp_shapes[0].pts*lcar.wh().reshape(2,1) + lcar.tl().reshape(2,1)
-				ptspx = pts*np.array(I.shape[1::-1],dtype=float).reshape(2,1)
-				draw_losangle(I,ptspx,RED,3)
+					if isfile(lp_labels_str[i]):
+						with open(lp_labels_str[i],'r') as f:
+							lp_str = f.read().strip()
+						llp = Label(0,tl=pts.min(1),br=pts.max(1))
+						write2img(I,llp,lp_str)
 
-				if isfile(lp_label_str):
-					with open(lp_label_str,'r') as f:
-						lp_str = f.read().strip()
-					llp = Label(0,tl=pts.min(1),br=pts.max(1))
-					write2img(I,llp,lp_str)
-
-					sys.stdout.write(',%s' % lp_str)
+						sys.stdout.write(',%s' % lp_str)
 
 	cv2.imwrite('%s/%s_output.png' % (output_dir,bname),I)
 	sys.stdout.write('\n')
