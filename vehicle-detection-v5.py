@@ -85,7 +85,7 @@ if __name__ == '__main__':
 
 					labels.append(textual_label)
 
-					cv2.imwrite('%s/%s_%dcar.png' % (output_dir,bname,i), vehicle_label)
+					cv2.imwrite('%s/%s_%d_car.png' % (output_dir,bname,i), vehicle_label)
 
 				lwrite('%s/%s_cars.txt' % (output_dir,bname),labels)
 
