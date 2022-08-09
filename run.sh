@@ -44,7 +44,7 @@ vehicle_only=0
 lp_only=0
 ocr_only=0
 max_vehicles=0
-vehicles-order="area"
+vehicles_order="area"
 
 # Check # of arguments
 usage() {
@@ -117,7 +117,7 @@ while [[ $# -gt 0 ]]; do
 	  shift
 	  ;;
 	--vehicles-order)
-	  vehicles-order="$2"
+	  vehicles_order="$2"
 	  shift
 	  ;;
 	--coco-categories)
@@ -162,7 +162,7 @@ if [ $vehicle_detection_threshold -lt 1 ] || [ $vehicle_detection_threshold -gt 
 if [ $lp_detection_threshold -lt 1 ] || [ $lp_detection_threshold -gt 100 ]; then echo "LP detection threshold must be between 1 and 100" ; usage; exit 1; fi
 if [ $ocr_detection_threshold -lt 1 ] || [ $ocr_detection_threshold -gt 100 ]; then echo "OCR detection threshold must be between 1 and 100" ; usage; exit 1; fi
 if [ $yolo_version -ne 2 ] && [ $yolo_version -ne 5 ]; then echo "Invalid YOLO version. Please provide some of these available version numbers: [3,5]"; usage; exit 1; fi
-if [ $vehicles-order != "area" ] && [ $vehicles-order != "confidence" ]; then echo "Invalid vehicles-order option. Valid options: area, confidence"; usage; exit 1; fi
+if [ $vehicles_order != "area" ] && [ $vehicles_order != "confidence" ]; then echo "Invalid vehicles-order option. Valid options: area, confidence"; usage; exit 1; fi
 
 # Check if input dir exists
 check_dir $input_dir
