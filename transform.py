@@ -44,5 +44,5 @@ def findsimilar(lp_str, regex_patterns):
             matches = re.findall(pattern, candidate, flags=re.IGNORECASE)            
             for match in matches:
                 if not match in lp_filtered_candidates:
-                    lp_filtered_candidates.append(match)
+                    lp_filtered_candidates.append((pattern_id, match))
     return lp_filtered_candidates

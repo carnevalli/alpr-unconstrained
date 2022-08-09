@@ -2,6 +2,7 @@ import sys
 import cv2
 import numpy as np
 import re
+import json
 
 from glob						import glob
 from os.path 					import splitext, basename, isfile
@@ -40,27 +41,47 @@ for img_file in img_files:
 
 	detected_cars_labels = '%s/%s_cars.txt' % (output_dir,bname)
 
-	car_labels = lread(detected_cars_labels)
+	vehicle_labels = lread(detected_cars_labels)
+
+	report = {
+		"name" : bname,
+		"img_file" : img_file,
+		"vehicles": []
+	}
 
 	sys.stdout.write('%s' % bname)
 
-	if car_labels:
+	if vehicle_labels:
 
-		for i,car_label in enumerate(car_labels):
+		for i,vehicle_label in enumerate(vehicle_labels):
 
-			draw_label(I,car_label,color=YELLOW,thickness=3)
+			
+			vehicle_report = {
+				'coords' : {
+					'class' : vehicle_label.cl(),
+					'tlx' : vehicle_label.tl()[0],
+					'tly' : vehicle_label.tl()[1],
+					'brx' : vehicle_label.br()[0],
+					'bry' : vehicle_label.br()[1],
+					"conf" : vehicle_label.prob()
+				},
+				"img": '%s/%s_%d_car.jpg' % (output_dir,bname,i),
+				'lps': []
+			}
+
+			draw_label(I,vehicle_label,color=YELLOW,thickness=3)
 
 			lp_labels = glob('%s/%s_%d_car_*_lp.txt' % (output_dir,bname,i))
 			lp_labels_str = glob('%s/%s_%d_car_*_lp_str.txt' % (output_dir,bname,i))
 
-			for i in range(len(lp_labels)):
-				if isfile(lp_labels[i]):
-					if isfile(lp_labels_str[i]):
+			for j in range(len(lp_labels)):
+				if isfile(lp_labels[j]):
+					if isfile(lp_labels_str[j]):
 						
 						lp_str = ''
 
 						# LP from OCR
-						with open(lp_labels_str[i],'r') as f:
+						with open(lp_labels_str[j],'r') as f:
 							lp_str = f.read().strip()
 
 						# transformation to find valid similar LP strings
@@ -68,19 +89,19 @@ for img_file in img_files:
 						if not suppress_transformations:
 							lp_similar = findsimilar(lp_str, regex_patterns)
 
+						matches = []
 						if regex_patterns:
-							matches = []
 							for pattern_id, pattern in regex_patterns:
-								m = re.findall(pattern, lp_str, flags=re.IGNORECASE)
+								ms = re.findall(pattern, lp_str, flags=re.IGNORECASE)
 
-								if len(m) > 0:
-									matches.append((pattern_id, lp_str))
+								for m in ms: 
+									matches.append((pattern_id, m))
 							
 							if len(matches) == 0:
 								continue
 
-						lp_shapes = readShapes(lp_labels[i])
-						pts = lp_shapes[0].pts * car_label.wh().reshape(2,1) + car_label.tl().reshape(2,1)
+						lp_shapes = readShapes(lp_labels[j])
+						pts = lp_shapes[0].pts * vehicle_label.wh().reshape(2,1) + vehicle_label.tl().reshape(2,1)
 						ptspx = pts * np.array(I.shape[1::-1], dtype=float).reshape(2,1)
 						draw_losangle(I,ptspx,RED,3)
 						
@@ -90,7 +111,19 @@ for img_file in img_files:
 
 						sys.stdout.write(',%s' % lp_str)
 
+						vehicle_report['lps'].append({
+							"img": '%s/%s_%d_car_%d_lp.jpg' % (output_dir,bname, i, j),
+							"pts" : lp_shapes[0].pts.tolist(),
+							"ocr" : lp_str,
+							"matches" : matches,
+							"similar" : lp_similar,
+						})
+
+			report["vehicles"].append(vehicle_report)
+
 	cv2.imwrite('%s/%s_output.png' % (output_dir,bname),I)
 	sys.stdout.write('\n')
+	with open('%s/%s_report.json' % (output_dir,bname), 'wt') as out_file:
+		json.dump(report, out_file, indent=4)
 
 
