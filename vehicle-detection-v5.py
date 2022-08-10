@@ -54,8 +54,6 @@ if __name__ == '__main__':
 			detection_results = model(img_path, size=640).pandas().xyxy[0]
 			vehicles = detection_results.loc[detection_results['name'].isin(coco_categories_of_interest) & detection_results['confidence'] > 0].copy()
 
-			print('Order', vehicles_order)
-
 			vehicles['area'] =  (vehicles['xmax'] - vehicles['xmin']) * (vehicles['ymax'] - vehicles['ymin'])
 			vehicles.sort_values('confidence' if vehicles_order == 'confidence' else 'area' , ascending=False, inplace=True)
 
