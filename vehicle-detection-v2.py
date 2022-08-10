@@ -21,7 +21,7 @@ if __name__ == '__main__':
 
 		vehicle_threshold = .5
 		max_vehicles = 0
-		max_vehicles_order_by = 'area'
+		vehicles_order = 'area'
 		coco_categories_of_interest = ['car', 'bus']
 
 		if len(sys.argv) >= 4:
@@ -34,7 +34,7 @@ if __name__ == '__main__':
 			max_vehicles = int(sys.argv[5])
 
 		if len(sys.argv) >= 7:
-			max_vehicles_order_by = sys.argv[6]
+			vehicles_order = sys.argv[6]
 
 		vehicle_weights = b'data/vehicle-detector/yolo-voc.weights'
 		vehicle_netcfg  = b'data/vehicle-detector/yolo-voc.cfg'
@@ -83,17 +83,18 @@ if __name__ == '__main__':
 						}
 					)
 
-				crops.sort(key=lambda c : c['coords'][2] * c['coords'][3] if max_vehicles_order_by == 'area' else c['confidence'], reverse=True)
+				crops.sort(key=lambda c : c['coords'][2] * c['coords'][3] if vehicles_order == 'area' else c['confidence'], reverse=True)
 				crops = crops[: len(crops) if max_vehicles == 0 or max_vehicles >= len(crops) else max_vehicles]
 				
 				labels = []
 
 				for i,r in enumerate(crops):
+
 					area_x, area_y, area_width, area_height = (np.array(r['coords'])/np.concatenate( (image_sizes, image_sizes) )).tolist()
 					top_left = np.array([area_x - area_width / 2., area_y - area_height / 2.])
 					bottom_right = np.array([area_x + area_width / 2., area_y + area_height /2.])
 					
-					textual_label = Label(0, top_left, bottom_right)
+					textual_label = Label(r['label'], top_left, bottom_right, r['confidence'])
 					vehicle_label = crop_region(original_image, textual_label)
 
 					labels.append(textual_label)

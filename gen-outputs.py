@@ -1,4 +1,5 @@
 import sys
+from turtle import shapesize
 import cv2
 import numpy as np
 import re
@@ -71,11 +72,11 @@ for img_file in img_files:
 
 			draw_label(I,vehicle_label,color=YELLOW,thickness=3)
 
-			lp_labels = glob('%s/%s_%d_car_*_lp.txt' % (output_dir,bname,i))
 			lp_labels_str = glob('%s/%s_%d_car_*_lp_str.txt' % (output_dir,bname,i))
 
-			for j in range(len(lp_labels)):
-				if isfile(lp_labels[j]):
+			for j in range(len(lp_labels_str)):
+				lp_shapes_file = lp_labels_str[j].replace('_str', '')
+				if isfile(lp_labels_str[j].replace('_str', '')):
 					if isfile(lp_labels_str[j]):
 						
 						lp_str = ''
@@ -100,7 +101,7 @@ for img_file in img_files:
 							if len(matches) == 0:
 								continue
 
-						lp_shapes = readShapes(lp_labels[j])
+						lp_shapes = readShapes(lp_shapes_file)
 						pts = lp_shapes[0].pts * vehicle_label.wh().reshape(2,1) + vehicle_label.tl().reshape(2,1)
 						ptspx = pts * np.array(I.shape[1::-1], dtype=float).reshape(2,1)
 						draw_losangle(I,ptspx,RED,3)

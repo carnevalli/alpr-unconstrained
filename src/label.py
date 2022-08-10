@@ -6,14 +6,14 @@ from os.path import isfile
 
 class Label:
 
-	def __init__(self,cl=-1,tl=np.array([0.,0.]),br=np.array([0.,0.]),prob=None):
+	def __init__(self,cl='0',tl=np.array([0.,0.]),br=np.array([0.,0.]),prob=None):
 		self.__tl 	= tl
 		self.__br 	= br
 		self.__cl 	= cl
 		self.__prob = prob
 
 	def __str__(self):
-		return 'Class: %d, top_left(x:%f,y:%f), bottom_right(x:%f,y:%f)' % (self.__cl, self.__tl[0], self.__tl[1], self.__br[0], self.__br[1])
+		return 'Class: %s, top_left(x:%f,y:%f), bottom_right(x:%f,y:%f)' % (self.__cl, self.__tl[0], self.__tl[1], self.__br[0], self.__br[1])
 
 	def copy(self):
 		return Label(self.__cl,self.__tl,self.__br)
@@ -63,7 +63,7 @@ def lread(file_path,label_type=Label):
 	with open(file_path,'r') as fd:
 		for line in fd:
 			v 		= line.strip().split()
-			cl 		= int(v[0])
+			cl 		= v[0]
 			ccx,ccy = float(v[1]),float(v[2])
 			w,h 	= float(v[3]),float(v[4])
 			prob 	= float(v[5]) if len(v) == 6 else None
@@ -80,9 +80,9 @@ def lwrite(file_path,labels,write_probs=True):
 		for l in labels:
 			cc,wh,cl,prob = (l.cc(),l.wh(),l.cl(),l.prob())
 			if prob != None and write_probs:
-				fd.write('%d %f %f %f %f %f\n' % (cl,cc[0],cc[1],wh[0],wh[1],prob))
+				fd.write('%s %f %f %f %f %f\n' % (cl,cc[0],cc[1],wh[0],wh[1],prob))
 			else:
-				fd.write('%d %f %f %f %f\n' % (cl,cc[0],cc[1],wh[0],wh[1]))
+				fd.write('%s %f %f %f %f\n' % (cl,cc[0],cc[1],wh[0],wh[1]))
 
 
 def dknet_label_conversion(R,img_width,img_height):

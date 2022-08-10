@@ -197,17 +197,17 @@ fi
 set -e
 
 # Detect vehicles
-# python vehicle-detection-v$yolo_version.py $input_dir $output_dir $vehicle_detection_threshold $coco_categories $max_vehicles $vehicles-order
+python vehicle-detection-v$yolo_version.py $input_dir $output_dir $vehicle_detection_threshold $coco_categories $max_vehicles $vehicles_order
 
 if [ $vehicle_only -eq 0 ]
 then
 	# Detect license plates
-	# python license-plate-detection.py $output_dir $lp_model $lp_detection_threshold
+	python license-plate-detection.py $output_dir $lp_model $lp_detection_threshold
 
 	if [ $lp_only -eq 0 ]
 	then
 		# OCR
-		# python license-plate-ocr.py $output_dir $ocr_detection_threshold
+		python license-plate-ocr.py $output_dir $ocr_detection_threshold
 
 		if [ $ocr_only -eq 0 ]
 		then
