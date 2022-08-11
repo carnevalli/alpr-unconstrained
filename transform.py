@@ -41,8 +41,8 @@ def findsimilar(lp_str, regex_patterns):
     lp_candidates = swapletters(lp_str)
     for candidate in lp_candidates:
         for pattern_id, pattern in regex_patterns:
-            matches = re.findall(pattern, candidate, flags=re.IGNORECASE)            
+            matches = re.findall(pattern, candidate, flags=re.IGNORECASE)   
             for match in matches:
-                if not match in lp_filtered_candidates:
+                if not (pattern_id, match) in lp_filtered_candidates:
                     lp_filtered_candidates.append((pattern_id, match))
     return lp_filtered_candidates
