@@ -58,15 +58,15 @@ for img_file in img_files:
 
 			
 			vehicle_report = {
+				'class' : vehicle_label.cl(),
+				"conf" : vehicle_label.prob(),
+				'img': '%s/%s_%d_car.jpg' % (output_dir,bname,i),
 				'coords' : {
-					'class' : vehicle_label.cl(),
 					'tlx' : vehicle_label.tl()[0],
 					'tly' : vehicle_label.tl()[1],
 					'brx' : vehicle_label.br()[0],
 					'bry' : vehicle_label.br()[1],
-					"conf" : vehicle_label.prob()
 				},
-				"img": '%s/%s_%d_car.jpg' % (output_dir,bname,i),
 				'lps': []
 			}
 
@@ -97,9 +97,6 @@ for img_file in img_files:
 
 								for m in ms: 
 									matches.append((pattern_id, m))
-							
-							if len(matches) == 0:
-								continue
 
 						lp_shapes = readShapes(lp_shapes_file)
 						pts = lp_shapes[0].pts * vehicle_label.wh().reshape(2,1) + vehicle_label.tl().reshape(2,1)
