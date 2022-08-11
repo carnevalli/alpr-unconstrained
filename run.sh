@@ -33,8 +33,8 @@ fi
 lp_model="data/lp-detector/wpod-net_update1.h5"
 input_dir=''
 output_dir=''
-csv_file=''
 vehiclep_files=0
+keep_files=0
 vehicle_detection_threshold=50
 lp_detection_threshold=50
 ocr_detection_threshold=40
@@ -53,11 +53,10 @@ usage() {
 	echo ""
 	echo " Usage:"
 	echo ""
-	echo "   bash $0 -i input/dir -o output/dir -c csv_file.csv [-h] [-l path/to/model]:"
+	echo "   bash $0 -i input/dir -o output/dir [-h] [-l path/to/model]:"
 	echo ""
 	echo "   -i, --input-dir   Input dir path (containing JPG or PNG images)"
 	echo "   -o, --output-dir   Output dir path"
-	echo "   -c, --csv-file   Output CSV file path"
 	echo "   -l, --lp-model   Path to Keras LP detector model (default = $lp_model)"
 	echo "   -k, --keep-files   Keep temporary files in outpuvehicleath"
 	echo "   --vehicle-threshold  Vehicle detection threshold (default: $vehicle_detection_threshold, min: 1, max: 100)"
@@ -87,11 +86,6 @@ while [[ $# -gt 0 ]]; do
       ;;
     -o|--output-dir)
       output_dir="$2"
-      shift # past argument
-      shift # past value
-      ;;
-	-c|--csv-dir)
-      csv_file="$2"
       shift # past argument
       shift # past value
       ;;
@@ -169,7 +163,6 @@ done
 
 if [ -z "$input_dir"  ]; then echo "Input dir not set."; usage; exit 1; fi
 if [ -z "$output_dir" ]; then echo "Ouput dir not set."; usage; exit 1; fi
-if [ -z "$csv_file"   ]; then echo "CSV file not set." ; usage; exit 1; fi
 if [ $vehicle_detection_threshold -lt 1 ] || [ $vehicle_detection_threshold -gt 100 ]; then echo "Vehicle detection threshold must be between 1 and 100" ; usage; exit 1; fi
 if [ $lp_detection_threshold -lt 1 ] || [ $lp_detection_threshold -gt 100 ]; then echo "LP detection threshold must be between 1 and 100" ; usage; exit 1; fi
 if [ $ocr_detection_threshold -lt 1 ] || [ $ocr_detection_threshold -gt 100 ]; then echo "OCR detection threshold must be between 1 and 100" ; usage; exit 1; fi
