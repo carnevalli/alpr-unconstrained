@@ -25,9 +25,15 @@ if __name__ == '__main__':
 		wpod_net = load_model(wpod_net_path)
 
 		lp_threshold = .5
+		detection_max_image_size = 1600
 
 		if len(sys.argv) >= 4:
 			lp_threshold = float(sys.argv[3]) / 100
+
+		if len(sys.argv) >= 5:
+			detection_max_image_size= int(sys.argv[4])
+
+		detection_max_image_size += (detection_max_image_size%(2**4))
 
 		imgs_paths = glob('%s/*car.png' % input_dir)
 
@@ -40,12 +46,15 @@ if __name__ == '__main__':
 			bname = splitext(basename(img_path))[0]
 			vehicle_image = cv2.imread(img_path)
 
-			ratio = float(max(vehicle_image.shape[:2]))/min(vehicle_image.shape[:2])
-			side  = int(ratio*288.)
-			bound_dim = min(side + (side%(2**4)),608)
-			print("\t\tBound dim: %d, ratio: %f" % (bound_dim,ratio))
+			max_img_side = max(vehicle_image.shape[:2])
+			# ratio = float(max(vehicle_image.shape[:2]))/min(vehicle_image.shape[:2])
+			# side  = int(ratio*1200.)
+			side = min(max_img_side, detection_max_image_size)
+			bound_dim = min(side + (side%(2**4)), detection_max_image_size)
+			print(max(vehicle_image.shape[:2]), min(vehicle_image.shape[:2]))
+			print("\t\tBound dim: %d, side: %f" % (bound_dim, side))
 
-			lp_labels, lp_images, _ = detect_lp(wpod_net,im2single(vehicle_image),bound_dim,2**4,(240,80),lp_threshold)
+			lp_labels, lp_images, _ = detect_lp(wpod_net,im2single(vehicle_image),bound_dim,2**4,(360,120),lp_threshold)
 
 			print('\t\tPossible LP found: %d' % len(lp_images))
 
