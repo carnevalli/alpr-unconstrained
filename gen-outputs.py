@@ -72,17 +72,17 @@ for img_file in img_files:
 
 			draw_label(I,vehicle_label,color=YELLOW,thickness=3)
 
-			lp_labels_str = glob('%s/%s_%d_car_*_lp_str.txt' % (output_dir,bname,i))
+			lp_labels_str = sorted(glob('%s/%s_%d_car_*_lp_str.txt' % (output_dir,bname,i)))
 
-			for j in range(len(lp_labels_str)):
-				lp_shapes_file = lp_labels_str[j].replace('_str', '')
-				if isfile(lp_labels_str[j].replace('_str', '')):
-					if isfile(lp_labels_str[j]):
+			for lp_label_str in lp_labels_str:
+				lp_shapes_file = lp_label_str.replace('_str', '')
+				if isfile(lp_label_str.replace('_str', '')):
+					if isfile(lp_label_str):
 						
 						lp_str = ''
 
 						# LP from OCR
-						with open(lp_labels_str[j],'r') as f:
+						with open(lp_label_str,'r') as f:
 							lp_str = f.read().strip()
 
 						# transformation to find valid similar LP strings
@@ -110,7 +110,7 @@ for img_file in img_files:
 						sys.stdout.write(',%s' % lp_str)
 
 						vehicle_report['lps'].append({
-							"img": '%s/%s_%d_car_%d_lp.jpg' % (output_dir,bname, i, j),
+							"img": lp_shapes_file.replace('.txt', '.jpg'),
 							"pts" : lp_shapes[0].pts.tolist(),
 							"ocr" : lp_str,
 							"matches" : matches,
