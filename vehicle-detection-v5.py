@@ -21,6 +21,7 @@ if __name__ == '__main__':
 		max_vehicles = 0
 		vehicles_order = 'area'
 		coco_categories_of_interest = ['car', 'bus']
+		whole_image_fallback = True
 
 		if len(sys.argv) >= 4:
 			vehicle_threshold = float(sys.argv[3]) / 100
@@ -33,6 +34,9 @@ if __name__ == '__main__':
 
 		if len(sys.argv) >= 7:
 			vehicles_order = sys.argv[6]
+
+		if len(sys.argv) >= 8:
+			whole_image_fallback = True if sys.argv[7] == '1' else False
 
 		model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
 
@@ -63,11 +67,11 @@ if __name__ == '__main__':
 			found_vehicles_labels = vehicles['name'].values
 			print('\t\t%d vehicles found: %s' % (len(vehicles), ', '.join(found_vehicles_labels)))
 
+			labels = []
 			if len(vehicles):
 				original_image = cv2.imread(img_path)
 
 				height, width, channels = original_image.shape
-				labels = []
 
 				vehicles['top_left_x'] = vehicles['xmin'] / width
 				vehicles['top_left_y'] = vehicles['ymin'] / height
@@ -89,7 +93,19 @@ if __name__ == '__main__':
 					cv2.imwrite('%s/%s_%d_car.png' % (output_dir,bname, sequence), vehicle_label)
 
 					sequence += 1
+			else:
+				if whole_image_fallback:
+					original_image = cv2.imread(img_path)
 
+					height, width, channels = original_image.shape
+
+					textual_label = Label('fallback', np.array([0, 0]), np.array([1, 1]), 0)
+					vehicle_label = crop_region(original_image, textual_label)
+
+					labels.append(textual_label)
+					cv2.imwrite('%s/%s_%d_car.png' % (output_dir,bname, 0), vehicle_label)				
+			
+			if labels:
 				lwrite('%s/%s_cars.txt' % (output_dir,bname),labels)
 
 	except:
