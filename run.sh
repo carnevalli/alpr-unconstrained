@@ -48,6 +48,7 @@ vehicles_order="area"
 validation_regex="regex.tsv"
 suppress_transformations=0
 detection_max_image_size=600
+whole_image_fallback=0
 
 # Check # of arguments
 usage() {
@@ -73,6 +74,7 @@ usage() {
 	echo "   --ocr-only Stops the image processing after OCR stage."
 	echo "   --suppress-transformations Prevents the usage of transformations to find similar strings based on the OCR inferred string."
 	echo "   --detection-max-img-size The maximum dimension that images should be resized to before performing LP detection. Higher values bring more precision, but are more computationally expensive.  Default: $detection_max_image_size. "
+	echo "   --whole-image-fallback Performs LP search on the whole image if no vehicles were found."
 	echo "   -h, --help   Print this help information"
 	echo ""
 	exit 1
@@ -152,6 +154,10 @@ while [[ $# -gt 0 ]]; do
 	  detection_max_image_size="$2"
 	  shift
 	  ;;
+	--whole-image-fallback)
+	  whole_image_fallback=1
+	  shift
+	  ;;
 	-h|--help)
       usage
       shift # past argument
@@ -196,7 +202,7 @@ fi
 set -e
 
 # Detect vehicles
-python vehicle-detection-v$yolo_version.py $input_dir $output_dir $vehicle_detection_threshold $coco_categories $max_vehicles $vehicles_order
+python vehicle-detection-v$yolo_version.py $input_dir $output_dir $vehicle_detection_threshold $coco_categories $max_vehicles $vehicles_order $whole_image_fallback
 
 if [ $vehicle_only -eq 0 ]
 then

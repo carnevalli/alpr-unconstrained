@@ -21,7 +21,7 @@ if __name__ == '__main__':
 		max_vehicles = 0
 		vehicles_order = 'area'
 		coco_categories_of_interest = ['car', 'bus']
-		whole_image_fallback = True
+		whole_image_fallback = False
 
 		if len(sys.argv) >= 4:
 			vehicle_threshold = float(sys.argv[3]) / 100
