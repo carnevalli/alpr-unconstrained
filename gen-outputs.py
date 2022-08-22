@@ -23,12 +23,16 @@ output_dir = sys.argv[2]
 
 validation_regex_path = ''
 suppress_transformations = False
+generate_demo = False
 
 if len(sys.argv) >= 4:
 	validation_regex_path = sys.argv[3]
 
 if len(sys.argv) >= 5:
 	suppress_transformations = sys.argv[4] == '1'
+
+if len(sys.argv) >= 6:
+	generate_demo = sys.argv[5] == '1'
 
 img_files = image_files_from_folder(input_dir)
 
@@ -38,7 +42,10 @@ for img_file in img_files:
 
 	bname = splitext(basename(img_file))[0]
 
-	I = cv2.imread(img_file)
+	original_image = None
+
+	if generate_demo:
+		original_image = cv2.imread(img_file)
 
 	detected_cars_labels = '%s/%s_cars.txt' % (output_dir,bname)
 
@@ -70,7 +77,8 @@ for img_file in img_files:
 				'lps': []
 			}
 
-			draw_label(I,vehicle_label,color=YELLOW,thickness=3)
+			if generate_demo:
+				draw_label(original_image,vehicle_label,color=YELLOW,thickness=3)
 
 			lp_labels_str = sorted(glob('%s/%s_%d_car_*_lp_str.txt' % (output_dir,bname,i)))
 
@@ -99,15 +107,6 @@ for img_file in img_files:
 									matches.append((pattern_id, m))
 
 						lp_shapes = readShapes(lp_shapes_file)
-						pts = lp_shapes[0].pts * vehicle_label.wh().reshape(2,1) + vehicle_label.tl().reshape(2,1)
-						ptspx = pts * np.array(I.shape[1::-1], dtype=float).reshape(2,1)
-						draw_losangle(I,ptspx,RED,3)
-						
-						
-						lp_label = Label(0,tl=pts.min(1),br=pts.max(1))
-						write2img(I, lp_label, lp_str)
-
-						sys.stdout.write(',%s' % lp_str)
 
 						vehicle_report['lps'].append({
 							"img": lp_shapes_file.replace('.txt', '.jpg'),
@@ -117,9 +116,20 @@ for img_file in img_files:
 							"similar" : lp_similar,
 						})
 
-			report["vehicles"].append(vehicle_report)
+						if generate_demo:
+							pts = lp_shapes[0].pts * vehicle_label.wh().reshape(2,1) + vehicle_label.tl().reshape(2,1)
+							ptspx = pts * np.array(original_image.shape[1::-1], dtype=float).reshape(2,1)
 
-	cv2.imwrite('%s/%s_output.png' % (output_dir,bname),I)
+							draw_losangle(original_image,ptspx,RED,3)
+						
+							lp_label = Label(0,tl=pts.min(1),br=pts.max(1))
+							write2img(original_image, lp_label, lp_str)
+
+						sys.stdout.write(',%s' % lp_str)
+
+			report["vehicles"].append(vehicle_report)
+	if generate_demo:
+		cv2.imwrite('%s/%s_output.png' % (output_dir,bname), original_image)
 	sys.stdout.write('\n')
 	with open('%s/%s_report.json' % (output_dir,bname), 'wt') as out_file:
 		json.dump(report, out_file, indent=4)

@@ -35,6 +35,8 @@ input_dir=''
 output_dir=''
 vehiclep_files=0
 keep_files=0
+keep_vehicles=0
+keep_lps=0
 vehicle_detection_threshold=50
 lp_detection_threshold=50
 ocr_detection_threshold=40
@@ -49,6 +51,7 @@ validation_regex="regex.tsv"
 suppress_transformations=0
 detection_max_image_size=600
 whole_image_fallback=0
+generate_demo=0
 
 # Check # of arguments
 usage() {
@@ -61,6 +64,9 @@ usage() {
 	echo "   -o, --output-dir   Output dir path"
 	echo "   -l, --lp-model   Path to Keras LP detector model (default = $lp_model)"
 	echo "   -k, --keep-files   Keep temporary files in output folder"
+	echo "   --keep-vehicles   Keep temporary vehicles files in output folder"
+	echo "   --keep-lps   Keep temporary license plate recognition files in output folder"
+	echo "   --generate-demo   Generates demo image once the process finishes."
 	echo "   --vehicle-threshold  Vehicle detection threshold (default: $vehicle_detection_threshold, min: 1, max: 100)"
 	echo "   --lp-threshold  LP detection threshold (default: $lp_detection_threshold, min: 1, max: 100)"
 	echo "   --ocr-threshold  LP OCR detection threshold (default: $ocr_detection_threshold, min: 1, max: 100)"
@@ -102,6 +108,18 @@ while [[ $# -gt 0 ]]; do
       keep_files=1
       shift # past argument
       ;;
+	--keep-vehicles)
+	  keep_vehicles=1
+	  shift
+	  ;;
+	--keep-lps)
+	  keep_lps=1
+	  shift
+	  ;;
+	--generate-demo)
+	  generate_demo=1
+	  shift
+	  ;;
 	--vehicle-threshold)
 	  vehicle_detection_threshold="$2"
 	  shift
@@ -217,7 +235,7 @@ then
 		if [ $ocr_only -eq 0 ]
 		then
 			# Draw output and generate list
-			python gen-outputs.py $input_dir $output_dir $validation_regex $suppress_transformations
+			python gen-outputs.py $input_dir $output_dir $validation_regex $suppress_transformations $generate_demo
 		fi
 	fi
 fi
@@ -225,9 +243,17 @@ fi
 # Clean files temporary files
 if [ $keep_files -eq 0 ]
 then 
-	rm $output_dir/*_lp.png 2> /dev/null
-	rm $output_dir/*car.png 2> /dev/null
+	if [ $keep_vehicles -eq 0 ]
+	then
+		rm $output_dir/*car.png 2> /dev/null
+	fi
+	
 	rm $output_dir/*_cars.txt 2> /dev/null
+
+	if [ $keep_lps -eq 0 ]
+	then
+		rm $output_dir/*_lp.png 2> /dev/null	
+	fi
 	rm $output_dir/*_lp.txt 2> /dev/null
 	rm $output_dir/*_str.txt 2> /dev/null
 fi
