@@ -23,6 +23,7 @@ if __name__ == '__main__':
 		max_vehicles = 0
 		vehicles_order = 'area'
 		coco_categories_of_interest = ['car', 'bus']
+		whole_image_fallback = False
 
 		if len(sys.argv) >= 4:
 			vehicle_threshold = float(sys.argv[3]) / 100
@@ -35,6 +36,9 @@ if __name__ == '__main__':
 
 		if len(sys.argv) >= 7:
 			vehicles_order = sys.argv[6]
+
+		if len(sys.argv) >= 8:
+			whole_image_fallback = True if sys.argv[7] == '1' else False
 
 		vehicle_weights = b'data/vehicle-detector/yolo-voc.weights'
 		vehicle_netcfg  = b'data/vehicle-detector/yolo-voc.cfg'
@@ -65,6 +69,7 @@ if __name__ == '__main__':
 
 			print('\t\t%d vehicles found: %s' % (len(vehicles), ', '.join(found_vehicles_labels)))
 
+			labels = []
 			if len(vehicles):
 
 				original_image = cv2.imread(img_path)
@@ -85,8 +90,6 @@ if __name__ == '__main__':
 
 				crops.sort(key=lambda c : c['coords'][2] * c['coords'][3] if vehicles_order == 'area' else c['confidence'], reverse=True)
 				crops = crops[: len(crops) if max_vehicles == 0 or max_vehicles >= len(crops) else max_vehicles]
-				
-				labels = []
 
 				for i,r in enumerate(crops):
 
@@ -100,9 +103,20 @@ if __name__ == '__main__':
 					labels.append(textual_label)
 
 					cv2.imwrite('%s/%s_%d_car.png' % (output_dir,bname,i), vehicle_label)
+			else:
+				if whole_image_fallback:
+					original_image = cv2.imread(img_path)
 
+					height, width, channels = original_image.shape
+
+					textual_label = Label('fallback', np.array([0, 0]), np.array([1, 1]), 0)
+					vehicle_label = crop_region(original_image, textual_label)
+
+					labels.append(textual_label)
+					cv2.imwrite('%s/%s_%d_car.png' % (output_dir,bname, 0), vehicle_label)
+			
+			if labels:
 				lwrite('%s/%s_cars.txt' % (output_dir,bname),labels)
-
 	except:
 		traceback.print_exc()
 		sys.exit(1)
