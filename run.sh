@@ -60,7 +60,7 @@ usage() {
 	echo "   -i, --input-dir   Input dir path (containing JPG or PNG images)"
 	echo "   -o, --output-dir   Output dir path"
 	echo "   -l, --lp-model   Path to Keras LP detector model (default = $lp_model)"
-	echo "   -k, --keep-files   Keep temporary files in outpuvehicleath"
+	echo "   -k, --keep-files   Keep temporary files in output folder"
 	echo "   --vehicle-threshold  Vehicle detection threshold (default: $vehicle_detection_threshold, min: 1, max: 100)"
 	echo "   --lp-threshold  LP detection threshold (default: $lp_detection_threshold, min: 1, max: 100)"
 	echo "   --ocr-threshold  LP OCR detection threshold (default: $ocr_detection_threshold, min: 1, max: 100)"
