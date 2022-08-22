@@ -26,12 +26,16 @@ if __name__ == '__main__':
 
 		lp_threshold = .5
 		detection_max_image_size = 1600
+		max_images = 0
 
 		if len(sys.argv) >= 4:
 			lp_threshold = float(sys.argv[3]) / 100
 
 		if len(sys.argv) >= 5:
-			detection_max_image_size= int(sys.argv[4])
+			detection_max_image_size = int(sys.argv[4])
+
+		if len(sys.argv) >= 6:
+			max_images = int(sys.argv[5])
 
 		detection_max_image_size += (detection_max_image_size%(2**4))
 
@@ -57,6 +61,9 @@ if __name__ == '__main__':
 			lp_labels, lp_images, _ = detect_lp(wpod_net,im2single(vehicle_image),bound_dim,2**4,(360,120),lp_threshold)
 
 			print('\t\tPossible LP found: %d' % len(lp_images))
+
+			if max_images > 0:
+				lp_images = lp_images[:max_images]
 
 			if len(lp_images):
 				for j in range(len(lp_images)):

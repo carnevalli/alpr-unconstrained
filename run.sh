@@ -46,6 +46,7 @@ vehicle_only=0
 lp_only=0
 ocr_only=0
 max_vehicles=0
+max_lps=0
 vehicles_order="area"
 validation_regex="regex.tsv"
 suppress_transformations=0
@@ -71,6 +72,7 @@ usage() {
 	echo "   --lp-threshold  LP detection threshold (default: $lp_detection_threshold, min: 1, max: 100)"
 	echo "   --ocr-threshold  LP OCR detection threshold (default: $ocr_detection_threshold, min: 1, max: 100)"
 	echo "   --max-vehicles Limits the number of detected vehicles ordering by descending image area occupied by each vehicle. (default: no limit)"
+	echo "   --max-lps Limits the number of detected license plates submitted to OCR. (default: no limit)"
 	echo "   --vehicles-order Defines sort criteria for vehicle processing queue, also impacting on max-vehicles setting. Options: area (biggest area first), confidence (greater confidence first)"
 	echo "   --coco-categories Comma-separated set of categories for object detection from cocodataset.org. (default: $coco_categories)"
 	echo "   --validation Path to regex validation file. (default: $validation_regex)"
@@ -134,6 +136,10 @@ while [[ $# -gt 0 ]]; do
 	  ;;
 	--max-vehicles)
 	  max_vehicles="$2"
+	  shift
+	  ;;
+	--max-lps)
+	  max_lps="$2"
 	  shift
 	  ;;
 	--vehicles-order)
@@ -225,7 +231,7 @@ python vehicle-detection-v$yolo_version.py $input_dir $output_dir $vehicle_detec
 if [ $vehicle_only -eq 0 ]
 then
 	# Detect license plates
-	python license-plate-detection.py $output_dir $lp_model $lp_detection_threshold $detection_max_image_size
+	python license-plate-detection.py $output_dir $lp_model $lp_detection_threshold $detection_max_image_size $max_lps
 
 	if [ $lp_only -eq 0 ]
 	then
