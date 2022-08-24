@@ -6,9 +6,11 @@ from uuid import uuid4
 from flask import Flask, render_template, request, make_response
 from werkzeug.exceptions import BadRequest
 from werkzeug.utils import secure_filename
+from classes.LicensePlateDetector import LicensePlateDetector
 from classes.VehicleDetector import VehicleDetector
 from classes.ImageHandler import ImageHandler
 from numpy import asarray
+from src.keras_utils import load_model
 
 app = Flask(__name__)
 
@@ -17,6 +19,7 @@ valid_exts = ['png', 'jpg', 'webp']
 
 # YoloV5 vehicle detection settings
 yolov5_model = None
+wpod_net_model = None
 
 
 @app.route("/", methods=['GET'])
@@ -39,6 +42,15 @@ def run():
 
     vehicles = vehicle_detection(img_uid, np_img)
 
+    vehicle = ImageHandler.crop(np_img, vehicles[0]['points'])
+
+    # ImageHandler.write_to_file(img_path + '/output/vv.png', vehicle)
+
+    lps = lp_detection(img_uid, vehicle)
+
+    for i, lp in enumerate(lps):
+        ImageHandler.write_to_file(img_path + '/output/lp_%d.png' % i, lp)
+
     return '<pre>' + str(vehicles) + '</pre>'
 
 def vehicle_detection(img_uid, np_img):
@@ -52,6 +64,11 @@ def vehicle_detection(img_uid, np_img):
         ImageHandler.write_to_file(files_dir + img_uid + '/output/' + 'v_%d.png' % i, crop)
 
     return vehicles
+
+def lp_detection(img_uid, np_img):
+    detector = LicensePlateDetector(wpod_net_model=wpod_net_model)
+    lps = detector.detect(np_img)
+    return lps
 
 def get_img_extension(f):
     ext = os.path.splitext(f)[-1]
@@ -75,4 +92,5 @@ def extract_img(request):
 if __name__ == '__main__':
     print('Loading YoloV5...')
     yolov5_model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
+    wpod_net_model = load_model('data/lp-detector/wpod-net_update1.h5')
     app.run(port=3001, debug=True)
