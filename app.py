@@ -2,6 +2,8 @@ import os
 import time
 import torch
 import cv2
+from classes.LicensePlateOCR import LicensePlateOCR
+import darknet.python.darknet as darknet
 from uuid import uuid4
 from flask import Flask, render_template, request, make_response
 from werkzeug.exceptions import BadRequest
@@ -10,7 +12,8 @@ from classes.LicensePlateDetector import LicensePlateDetector
 from classes.VehicleDetector import VehicleDetector
 from classes.ImageHandler import ImageHandler
 from numpy import asarray
-from src.keras_utils import load_model
+from src.keras_utils import detect_lp, load_model
+
 
 app = Flask(__name__)
 
@@ -19,7 +22,14 @@ valid_exts = ['png', 'jpg', 'webp']
 
 # YoloV5 vehicle detection settings
 yolov5_model = None
+# WPOD-NET LP Detection setting
 wpod_net_model = None
+# OCR Settings
+ocr_weights = b'data/ocr/ocr-net.weights'
+ocr_netcfg  = b'data/ocr/ocr-net.cfg'
+ocr_dataset = b'data/ocr/ocr-net.data'
+ocr_net = None
+ocr_meta = None
 
 
 @app.route("/", methods=['GET'])
@@ -42,14 +52,14 @@ def run():
 
     vehicles = vehicle_detection(img_uid, np_img)
 
-    vehicle = ImageHandler.crop(np_img, vehicles[0]['points'])
+    for i, vehicle in enumerate(vehicles):
+        vehicle = ImageHandler.crop(np_img, vehicles[0]['points'])
 
-    # ImageHandler.write_to_file(img_path + '/output/vv.png', vehicle)
+        lps = lp_detection(img_uid, vehicle)
 
-    lps = lp_detection(img_uid, vehicle)
-
-    for i, lp in enumerate(lps):
-        ImageHandler.write_to_file(img_path + '/output/lp_%d.png' % i, lp)
+        for j, lp in enumerate(lps):
+            ImageHandler.write_to_file(img_path + '/output/v_%d_lp_%d.png' % (i, j), lp)
+            lp_str = lp_ocr(img_path + '/output/v_%d_lp_%d.png' % (i, j))
 
     return '<pre>' + str(vehicles) + '</pre>'
 
@@ -66,9 +76,14 @@ def vehicle_detection(img_uid, np_img):
     return vehicles
 
 def lp_detection(img_uid, np_img):
-    detector = LicensePlateDetector(wpod_net_model=wpod_net_model)
+    detector = LicensePlateDetector(wpod_net_model=wpod_net_model, bw_threshold=127)
     lps = detector.detect(np_img)
     return lps
+
+def lp_ocr(img_path):
+    detector = LicensePlateOCR(ocr_net=ocr_net, ocr_meta=ocr_meta)
+    lp = detector.detect(img_path)
+    return lp
 
 def get_img_extension(f):
     ext = os.path.splitext(f)[-1]
@@ -93,4 +108,6 @@ if __name__ == '__main__':
     print('Loading YoloV5...')
     yolov5_model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
     wpod_net_model = load_model('data/lp-detector/wpod-net_update1.h5')
+    ocr_net  = darknet.load_net(ocr_netcfg, ocr_weights, 0)
+    ocr_meta = darknet.load_meta(ocr_dataset)
     app.run(port=3001, debug=True)
