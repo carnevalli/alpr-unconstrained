@@ -3,7 +3,9 @@ import os
 import time
 import torch
 import cv2
+import numpy as np
 from classes.LicensePlateOCR import LicensePlateOCR
+from classes.OutputProcessor import OutputProcessor
 import darknet.python.darknet as darknet
 from uuid import uuid4
 from flask import Flask, render_template, request, make_response
@@ -53,16 +55,27 @@ def run():
 
     vehicles = vehicle_detection(img_uid, np_img)
 
+    outputProcessor = OutputProcessor()
     for i, vehicle in enumerate(vehicles):
-        vehicle = ImageHandler.crop(np_img, vehicles[i]['points'])
+        v = ImageHandler.crop(np_img, vehicle['points'])
+        ImageHandler.draw_vehicle_shape(np_img, vehicle['points'])
         vehicle_lps = []
 
-        lps = lp_detection(img_uid, vehicle)
+        lps = lp_detection(img_uid, v)
 
         for j, lp in enumerate(lps):
-            ImageHandler.write_to_file(img_path + '/output/v_%d_lp_%d.png' % (i, j), lp)
+            ImageHandler.write_to_file(img_path + '/output/v_%d_lp_%d.png' % (i, j), lp['image'])
             lp_str = lp_ocr(img_path + '/output/v_%d_lp_%d.png' % (i, j))
-            vehicle_lps.append(lp_str)
+            vehicle_lps.append(lp['points'])
+
+
+            pts = OutputProcessor.get_lp_points(lp['points'], (v.shape[1], v.shape[0]), (vehicle['points'][2], vehicle['points'][0]))
+            ImageHandler.draw_losangle(np_img, pts, (0,0,255), 3)
+
+        ImageHandler.write_to_file(files_dir + img_uid + '/output/' + 'v_%d_output.png' % i, np_img)
+
+
+
         
         vehicles[i]['lps'] = vehicle_lps
 

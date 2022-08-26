@@ -37,5 +37,8 @@ class LicensePlateDetector:
                     (thresh, lp_image) = cv2.threshold(lp_image, self.bw_threshold, 255, cv2.THRESH_BINARY)
                 # lp_image = cv2.cvtColor(lp_image, cv2.COLOR_GRAY2BGR)
 
-                lps_output.append(lp_image)
+                lps_output.append({
+                    "image": lp_image,
+                    "points": lp_labels[j].pts
+                })
         return lps_output
