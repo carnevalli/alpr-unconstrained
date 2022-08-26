@@ -24,10 +24,14 @@ class VehicleDetector:
 
         return np.array([top_row, bottom_row, left_column, right_column])
 
-    def generate_label(self, category, points, confidence):
+    def calculate_relative_points(self, points, shape):
+        return points / np.array([shape[0], shape[0], shape[1], shape[1]])
+
+    def generate_label(self, category, shape, points, confidence):
         return {
             "category": category,
             "points": points,
+            "rpoints": self.calculate_relative_points(points, shape),
             "confidence": confidence
         }
 
@@ -54,7 +58,7 @@ class VehicleDetector:
 
             for _, v in vehicles.iterrows():
                 points = self.extract_vehicle_points(np_image, v)
-                labels.append(self.generate_label(v['name'], points, v['confidence']))
+                labels.append(self.generate_label(v['name'], np_image.shape, points, v['confidence']))
         else:
             if self.whole_image_fallback:
                 points = np.array([0, np_image.shape[0], 0, np_image.shape[1]])

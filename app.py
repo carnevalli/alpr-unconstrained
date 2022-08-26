@@ -1,3 +1,4 @@
+import json
 import os
 import time
 import torch
@@ -53,13 +54,17 @@ def run():
     vehicles = vehicle_detection(img_uid, np_img)
 
     for i, vehicle in enumerate(vehicles):
-        vehicle = ImageHandler.crop(np_img, vehicles[0]['points'])
+        vehicle = ImageHandler.crop(np_img, vehicles[i]['points'])
+        vehicle_lps = []
 
         lps = lp_detection(img_uid, vehicle)
 
         for j, lp in enumerate(lps):
             ImageHandler.write_to_file(img_path + '/output/v_%d_lp_%d.png' % (i, j), lp)
             lp_str = lp_ocr(img_path + '/output/v_%d_lp_%d.png' % (i, j))
+            vehicle_lps.append(lp_str)
+        
+        vehicles[i]['lps'] = vehicle_lps
 
     return '<pre>' + str(vehicles) + '</pre>'
 
