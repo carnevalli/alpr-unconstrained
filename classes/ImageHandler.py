@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 
 class ImageHandler:
     
@@ -24,14 +25,15 @@ class ImageHandler:
             cv2.line(np_image,pt1,pt2,color,thickness)
 
     @staticmethod
-    def write2img(Img,label,strg,txt_color=(0,0,0),bg_color=(255,255,255),font_size=1):
-        wh_img = np.array(Img.shape[1::-1])
-
+    def write2img(np_image,points,strg,txt_color=(0,0,0),bg_color=(255,255,255),font_size=1):
+        wh_img = np.array(np_image.shape[1::-1])
+        
         font = cv2.FONT_HERSHEY_SIMPLEX
 
         wh_text,v = cv2.getTextSize(strg, font, font_size, 3)
-        bl_corner = label.tl()*wh_img
-
+        rpoints = points / np.array(wh_img, dtype=float).reshape(2,1)
+        
+        bl_corner = rpoints.min(1) * wh_img
         tl_corner = np.array([bl_corner[0],bl_corner[1]-wh_text[1]])/wh_img
         br_corner = np.array([bl_corner[0]+wh_text[0],bl_corner[1]])/wh_img
         bl_corner /= wh_img
@@ -49,7 +51,7 @@ class ImageHandler:
 
         tpl = lambda x: tuple((x*wh_img).astype(int).tolist())
 
-        cv2.rectangle(Img, tpl(tl_corner), tpl(br_corner), bg_color, -1)	
-        cv2.putText(Img,strg,tpl(bl_corner),font,font_size,txt_color,3)    
+        cv2.rectangle(np_image, tpl(tl_corner), tpl(br_corner), bg_color, -1)	
+        cv2.putText(np_image,strg,tpl(bl_corner),font,font_size,txt_color,3) 
 
     

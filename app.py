@@ -51,14 +51,12 @@ def run():
     os.makedirs(img_path + 'output')
     img.save(img_full_path)
 
-    np_img = cv2.imread(img_full_path)
+    np_image = cv2.imread(img_full_path)
 
-    vehicles = vehicle_detection(img_uid, np_img)
+    vehicles = vehicle_detection(img_uid, np_image)
 
-    outputProcessor = OutputProcessor()
     for i, vehicle in enumerate(vehicles):
-        v = ImageHandler.crop(np_img, vehicle['points'])
-        ImageHandler.draw_vehicle_shape(np_img, vehicle['points'])
+        v = ImageHandler.crop(np_image, vehicle['points'])
         vehicle_lps = []
 
         lps = lp_detection(img_uid, v)
@@ -66,42 +64,37 @@ def run():
         for j, lp in enumerate(lps):
             ImageHandler.write_to_file(img_path + '/output/v_%d_lp_%d.png' % (i, j), lp['image'])
             lp_str = lp_ocr(img_path + '/output/v_%d_lp_%d.png' % (i, j))
-            vehicle_lps.append(lp['points'])
 
+            if len(lp_str.strip()) > 0:
+                vehicle_lps.append((lp_str, lp['points']))
 
-            pts = OutputProcessor.get_lp_points(lp['points'], (v.shape[1], v.shape[0]), (vehicle['points'][2], vehicle['points'][0]))
-            ImageHandler.draw_losangle(np_img, pts, (0,0,255), 3)
-
-        ImageHandler.write_to_file(files_dir + img_uid + '/output/' + 'v_%d_output.png' % i, np_img)
-
-
-
-        
         vehicles[i]['lps'] = vehicle_lps
 
+    generate_outputs(np_image, vehicles, img_path)
+    
     return '<pre>' + str(vehicles) + '</pre>'
 
-def vehicle_detection(img_uid, np_img):
+def vehicle_detection(img_uid, np_image):
     base_dir = files_dir + img_uid
     output_dir = base_dir + '/output'
     detector = VehicleDetector(model=yolov5_model, coco_categories_of_interest=['bus'])
-    vehicles = detector.detect(np_img)
-
-    for i, v in enumerate(vehicles):
-        crop = ImageHandler.crop(np_img, v['points'])
-        ImageHandler.write_to_file(files_dir + img_uid + '/output/' + 'v_%d.png' % i, crop)
+    vehicles = detector.detect(np_image)
 
     return vehicles
 
-def lp_detection(img_uid, np_img):
-    detector = LicensePlateDetector(wpod_net_model=wpod_net_model, bw_threshold=127)
-    lps = detector.detect(np_img)
+def lp_detection(img_uid, np_image):
+    detector = LicensePlateDetector(wpod_net_model=wpod_net_model)
+    lps = detector.detect(np_image)
     return lps
 
 def lp_ocr(img_path):
     detector = LicensePlateOCR(ocr_net=ocr_net, ocr_meta=ocr_meta)
     lp = detector.detect(img_path)
     return lp
+
+def generate_outputs(np_image, vehicles, img_path):
+    processor = OutputProcessor(generate_demo=True)
+    processor.process(np_image, vehicles, img_path + 'output/')
 
 def get_img_extension(f):
     ext = os.path.splitext(f)[-1]
