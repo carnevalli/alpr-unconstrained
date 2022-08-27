@@ -70,7 +70,7 @@ def run():
 
         vehicles[i]['lps'] = vehicle_lps
 
-    generate_outputs(np_image, vehicles, img_path)
+    generate_outputs(img_uid, np_image, vehicles, img_path)
     
     return '<pre>' + str(vehicles) + '</pre>'
 
@@ -92,9 +92,9 @@ def lp_ocr(img_path):
     lp = detector.detect(img_path)
     return lp
 
-def generate_outputs(np_image, vehicles, img_path):
-    processor = OutputProcessor(generate_demo=True)
-    processor.process(np_image, vehicles, img_path + 'output/')
+def generate_outputs(img_uid, np_image, vehicles, img_path):
+    processor = OutputProcessor(img_uid, generate_demo=True, generate_vehicles=True)
+    processor.process(np_image, vehicles)
 
 def get_img_extension(f):
     ext = os.path.splitext(f)[-1]

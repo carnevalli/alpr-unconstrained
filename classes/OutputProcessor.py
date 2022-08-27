@@ -3,12 +3,18 @@ import numpy as np
 from classes.ImageHandler import ImageHandler
 
 class OutputProcessor:
-    def __init__(self, validation_regex_path=None,
+    def __init__(self, img_uid, 
+        files_path="files/",
+        output_folder="output/",
+        validation_regex_path=None,
         suppress_transformations=False, 
         generate_demo=False, 
         demo_filename="demo.png",
         generate_vehicles=False):
 
+        self.img_uid = img_uid
+        self.files_path = files_path
+        self.output_folder = output_folder
         self.validation_regex_path = validation_regex_path
         self.suppress_transformations = suppress_transformations
         self.generate_demo = generate_demo
@@ -21,11 +27,14 @@ class OutputProcessor:
         tl_shape = np.array(top_left_points).reshape(2,1)
         return points * v_shape + tl_shape
 
-    def process(self, np_image, vehicles, output_path):
+    def get_output_path(self):
+        return self.files_path + self.img_uid +  '/' + self.output_folder
+
+    def process(self, np_image, vehicles):
         for i, vehicle in enumerate(vehicles):
             if self.generate_vehicles:
                 crop = ImageHandler.crop(np_image, vehicle['points'])
-                ImageHandler.write_to_file(output_path + 'v_%d.png' % i, crop)
+                ImageHandler.write_to_file( self.get_output_path() + 'v_%d.png' % i, crop)
 
             if self.generate_demo:
                 np_vehicle = ImageHandler.crop(np_image, vehicle['points'])
@@ -39,4 +48,4 @@ class OutputProcessor:
 
 
         if self.generate_demo:
-            ImageHandler.write_to_file(output_path + self.demo_filename, np_image)
+            ImageHandler.write_to_file(self.get_output_path() + self.demo_filename, np_image)
