@@ -1,21 +1,17 @@
-import json
 import os
 import time
 import torch
 import cv2
-import numpy as np
 from classes.LicensePlateOCR import LicensePlateOCR
 from classes.OutputProcessor import OutputProcessor
 import darknet.python.darknet as darknet
 from uuid import uuid4
 from flask import Flask, render_template, request, make_response
 from werkzeug.exceptions import BadRequest
-from werkzeug.utils import secure_filename
 from classes.LicensePlateDetector import LicensePlateDetector
 from classes.VehicleDetector import VehicleDetector
 from classes.ImageHandler import ImageHandler
-from numpy import asarray
-from src.keras_utils import detect_lp, load_model
+from src.keras_utils import load_model
 
 
 app = Flask(__name__)
