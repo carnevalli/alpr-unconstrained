@@ -1,4 +1,6 @@
 import numpy as np
+import re
+from classes.LicensePlateTransformation import LicensePlateTransformation
 
 from classes.ImageHandler import ImageHandler
 
@@ -6,7 +8,7 @@ class OutputProcessor:
     def __init__(self, img_uid, 
         files_path="files/",
         output_folder="output/",
-        validation_regex_path=None,
+        validation_regex_list=None,
         suppress_transformations=False, 
         generate_demo=False, 
         demo_filename="demo.png",
@@ -15,7 +17,7 @@ class OutputProcessor:
         self.img_uid = img_uid
         self.files_path = files_path
         self.output_folder = output_folder
-        self.validation_regex_path = validation_regex_path
+        self.validation_regex_list = validation_regex_list
         self.suppress_transformations = suppress_transformations
         self.generate_demo = generate_demo
         self.demo_filename = demo_filename
@@ -46,6 +48,20 @@ class OutputProcessor:
                     ImageHandler.draw_losangle(np_image, pts, (0,0,255), 3)
                     ImageHandler.write2img(np_image, pts, lp[0], font_size=2)
 
+                    if not self.suppress_transformations and self.validation_regex_list:
+                        vehicles[i]['similar'] = LicensePlateTransformation.findsimilar(lp[0], self.validation_regex_list)
+
+                        matches = []
+                        if self.validation_regex_list:
+                            for pattern_id, pattern in self.validation_regex_list:
+                                ms = re.findall(pattern, lp[0], flags=re.IGNORECASE)
+
+                                for m in ms: 
+                                    matches.append((pattern_id, m))
+                            vehicles[i]['matches'] = matches
+
 
         if self.generate_demo:
             ImageHandler.write_to_file(self.get_output_path() + self.demo_filename, np_image)
+
+        return vehicles

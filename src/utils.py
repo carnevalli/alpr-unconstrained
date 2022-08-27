@@ -124,21 +124,4 @@ def show(I,wname='Display'):
 		return key
 
 
-def loadRegexPatterns(path):
-	content = []
-	output = []
-
-	with open(path) as f:
-		content = f.readlines()
-		
-	for line in content:
-		if line.startswith('#'):
-			continue
-
-		label, regex = re.split(r'\t+', line)
-		output.append((label, regex.rstrip('\n')))
-	
-	return output
-
-
 

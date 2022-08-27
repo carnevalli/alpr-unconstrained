@@ -3,6 +3,7 @@ import time
 import torch
 import cv2
 from classes.LicensePlateOCR import LicensePlateOCR
+from classes.LicensePlateTransformation import LicensePlateTransformation
 from classes.OutputProcessor import OutputProcessor
 import darknet.python.darknet as darknet
 from uuid import uuid4
@@ -66,7 +67,8 @@ def run():
 
         vehicles[i]['lps'] = vehicle_lps
 
-    generate_outputs(img_uid, np_image, vehicles, img_path)
+    validation_regex = load_regex_from_file('regex.tsv')
+    output = generate_outputs(img_uid, np_image, vehicles, img_path, validation_regex)
     
     return '<pre>' + str(vehicles) + '</pre>'
 
@@ -88,9 +90,12 @@ def lp_ocr(img_path):
     lp = detector.detect(img_path)
     return lp
 
-def generate_outputs(img_uid, np_image, vehicles, img_path):
-    processor = OutputProcessor(img_uid, generate_demo=True, generate_vehicles=True)
-    processor.process(np_image, vehicles)
+def generate_outputs(img_uid, np_image, vehicles, img_path, validation_regex):
+    processor = OutputProcessor(img_uid, generate_demo=True, generate_vehicles=True, validation_regex_list=validation_regex)
+    return processor.process(np_image, vehicles)
+
+def load_regex_from_file(path):
+    return LicensePlateTransformation.loadRegexPatterns(path)
 
 def get_img_extension(f):
     ext = os.path.splitext(f)[-1]
