@@ -2,6 +2,7 @@ import os
 import time
 import torch
 import cv2
+import json
 from classes.LicensePlateOCR import LicensePlateOCR
 from classes.LicensePlateTransformation import LicensePlateTransformation
 from classes.OutputProcessor import OutputProcessor
@@ -69,8 +70,10 @@ def run():
 
     validation_regex = load_regex_from_file('regex.tsv')
     output = generate_outputs(img_uid, np_image, vehicles, img_path, validation_regex)
+
+    parsed = json.dumps(output)
     
-    return '<pre>' + str(vehicles) + '</pre>'
+    return '<pre>' + parsed + '</pre>'
 
 def vehicle_detection(img_uid, np_image):
     base_dir = files_dir + img_uid

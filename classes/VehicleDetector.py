@@ -22,17 +22,17 @@ class VehicleDetector:
         right_column = ceil(vehicle['xmax'])
         bottom_row = ceil(vehicle['ymax'])
 
-        return np.array([top_row, bottom_row, left_column, right_column])
+        return [top_row, bottom_row, left_column, right_column]
 
     def calculate_relative_points(self, points, shape):
-        return points / np.array([shape[0], shape[0], shape[1], shape[1]])
+        return (np.array(points) / np.array([shape[0], shape[0], shape[1], shape[1]])).tolist()
 
     def generate_label(self, category, shape, points, confidence):
         return {
             "category": category,
             "points": points,
             "rpoints": self.calculate_relative_points(points, shape),
-            "confidence": confidence
+            "confidence": round(confidence * 100, 1)
         }
 
     def detect(self, np_image):
@@ -61,7 +61,7 @@ class VehicleDetector:
                 labels.append(self.generate_label(v['name'], np_image.shape, points, v['confidence']))
         else:
             if self.whole_image_fallback:
-                points = np.array([0, np_image.shape[0], 0, np_image.shape[1]])
+                points = [0, np_image.shape[0], 0, np_image.shape[1]]
                 labels.append(self.generate_label('fallback', points, 0.))
         
         return labels

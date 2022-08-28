@@ -39,6 +39,6 @@ class LicensePlateDetector:
 
                 lps_output.append({
                     "image": lp_image,
-                    "points": lp_labels[j].pts
+                    "points": lp_labels[j].pts.tolist()
                 })
         return lps_output
