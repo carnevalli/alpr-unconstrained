@@ -7,11 +7,10 @@ import json
 
 from glob						import glob
 from os.path 					import splitext, basename, isfile
-from src.utils 					import crop_region, image_files_from_folder, loadRegexPatterns
+from src.utils 					import image_files_from_folder
 from src.drawing_utils			import draw_label, draw_losangle, write2img
 from src.label 					import lread, Label, readShapes
-from transform					import findsimilar
-
+from classes.LicensePlateTransformation import LicensePlateTransformation
 from pdb import set_trace as pause
 
 
@@ -36,7 +35,7 @@ if len(sys.argv) >= 6:
 
 img_files = image_files_from_folder(input_dir)
 
-regex_patterns = loadRegexPatterns(validation_regex_path)
+regex_patterns = LicensePlateTransformation.loadRegexPatterns(validation_regex_path)
 
 for img_file in img_files:
 
@@ -96,7 +95,7 @@ for img_file in img_files:
 						# transformation to find valid similar LP strings
 						lp_similar = []
 						if not suppress_transformations:
-							lp_similar = findsimilar(lp_str, regex_patterns)
+							lp_similar = LicensePlateTransformation.findsimilar(lp_str, regex_patterns)
 
 						matches = []
 						if regex_patterns:

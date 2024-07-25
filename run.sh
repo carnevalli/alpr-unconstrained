@@ -226,22 +226,22 @@ fi
 set -e
 
 # Detect vehicles
-python vehicle-detection-v$yolo_version.py $input_dir $output_dir $vehicle_detection_threshold $coco_categories $max_vehicles $vehicles_order $whole_image_fallback
+python3 vehicle-detection-v$yolo_version.py $input_dir $output_dir $vehicle_detection_threshold $coco_categories $max_vehicles $vehicles_order $whole_image_fallback
 
 if [ $vehicle_only -eq 0 ]
 then
 	# Detect license plates
-	python license-plate-detection.py $output_dir $lp_model $lp_detection_threshold $detection_max_image_size $max_lps
+	python3 license-plate-detection.py $output_dir $lp_model $lp_detection_threshold $detection_max_image_size $max_lps
 
 	if [ $lp_only -eq 0 ]
 	then
 		# OCR
-		python license-plate-ocr.py $output_dir $ocr_detection_threshold
+		python3 license-plate-ocr.py $output_dir $ocr_detection_threshold
 
 		if [ $ocr_only -eq 0 ]
 		then
 			# Draw output and generate list
-			python gen-outputs.py $input_dir $output_dir $validation_regex $suppress_transformations $generate_demo
+			python3 gen-outputs.py $input_dir $output_dir $validation_regex $suppress_transformations $generate_demo
 		fi
 	fi
 fi
